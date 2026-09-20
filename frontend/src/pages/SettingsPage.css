@@ -1,0 +1,1 @@
+.settings-page .module-card-grid{animation:settingsGridIn .3s ease both}.settings-page .module-card:hover{box-shadow:0 12px 30px rgba(0,0,0,.14)}@keyframes settingsGridIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
