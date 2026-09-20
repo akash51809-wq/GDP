@@ -1,0 +1,2 @@
+.placeholder-module-page .placeholder-page{animation:placeholderIn .3s ease both}
+@keyframes placeholderIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
