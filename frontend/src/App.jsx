@@ -12,7 +12,7 @@ import AddPartyPage from "./pages/AddPartyPage";
 import LedgerPaymentsPage from "./pages/LedgerPaymentsPage";
 import ReceivePaymentPage from "./pages/ReceivePaymentPage";
 import ReportsPage from "./pages/ReportsPage";
-import SettingsPage from "./pages/SettingsPage";
+import SettingsPage from "./pages/SettingsPage";\nimport BalancePaymentPage from "./pages/BalancePaymentPage";
 
 import "./styles.css";
 
@@ -24,7 +24,7 @@ const menu = [
   [Users, "Party / Customer", "parties", "/party"],
   [WalletCards, "Ledger / Payments", "ledger", "/ledger"],
   [CreditCard, "Receive Payment", "receive-payment", "/receive-payment"],
-  [BarChart3, "Reports", "reports", "/reports"],
+  [BarChart3, "Reports", "reports", "/reports"],\n  [WalletCards, "Balance Payment", "balance-payment", "/reports/balance-payment"],
   [Settings, "Settings", "settings", "/settings"]
 ];
 
@@ -39,7 +39,7 @@ const ROUTES = {
   "/add-user": "party-add",
   "/ledger": "ledger",
   "/receive-payment": "receive-payment",
-  "/reports": "reports",
+  "/reports": "reports",\n  "/reports/balance-payment": "balance-payment",
   "/report": "reports",
   "/settings": "settings"
 };
@@ -103,7 +103,7 @@ function AppShell({ user, onLogout }) {
       case "party-add": return <AddPartyPage />;
       case "ledger": return <LedgerPaymentsPage />;
       case "receive-payment": return <ReceivePaymentPage />;
-      case "reports": return <ReportsPage />;
+      case "reports": return <ReportsPage />;\n      case "balance-payment": return <BalancePaymentPage />;
       case "settings": return <SettingsPage />;
       case "dashboard":
       default: return <DashboardPage user={user} summary={summary} onNavigate={go} />;
@@ -112,7 +112,7 @@ function AppShell({ user, onLogout }) {
 
   const currentTitle = page === "dashboard" ? "Overview"
     : page === "party-add" ? "Add Party / Customer"
-    : menu.find(item => item[2] === page)?.[1] || "Overview";
+    : page === "balance-payment" ? "Balance Payment"\n    : menu.find(item => item[2] === page)?.[1] || "Overview";
 
   return (
     <div className="app-shell">
