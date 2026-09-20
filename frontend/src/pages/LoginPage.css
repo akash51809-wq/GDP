@@ -1,0 +1,4 @@
+.login-module-page .login-card{animation:loginCardIn .5s ease both}
+.login-module-page .login-showcase{animation:loginShowcaseIn .65s ease both}
+@keyframes loginCardIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes loginShowcaseIn{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
