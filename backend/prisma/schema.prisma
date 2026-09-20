@@ -42,6 +42,7 @@ model Party {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   tickets     Ticket[]
+  pnrRecords  PnrRecord[]
 }
 
 model Ticket {
@@ -65,6 +66,34 @@ model Ticket {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   party           Party    @relation(fields: [partyId], references: [id], onDelete: Restrict)
+}
+
+model PnrRecord {
+  id                    String    @id @default(cuid())
+  pnr                   String    @unique
+  partyId               String?
+  trainNumber           String?
+  trainName             String?
+  journeyDateText       String?
+  sourceCode             String?
+  sourceName             String?
+  destinationCode       String?
+  destinationName       String?
+  boardingCode          String?
+  boardingName          String?
+  travelClass           String?
+  quota                 String?
+  chartStatus           String?
+  fare                  Decimal?  @db.Decimal(12, 2)
+  passengerCount        Int       @default(0)
+  passengers            Json?
+  rawData               Json
+  fetchedAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  party                 Party?    @relation(fields: [partyId], references: [id], onDelete: SetNull)
+
+  @@index([partyId])
+  @@index([fetchedAt])
 }
 
 model AuditLog {
