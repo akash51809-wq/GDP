@@ -51,3 +51,54 @@ button{cursor:pointer}
 .dashboard-grid{display:grid;grid-template-columns:1.6fr .8fr;gap:14px;margin-top:14px}.glass-panel{border:1px solid rgba(255,255,255,.07);background:#091827;border-radius:20px;padding:23px}.panel-head{display:flex;justify-content:space-between}.panel-head h3{margin:7px 0 20px;font:700 18px "Manrope"}.action-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.action-card{border:1px solid rgba(255,255,255,.07);background:#0c1c2d;color:#dce9f7;border-radius:16px;padding:16px;display:flex;align-items:center;text-align:left;gap:12px}.action-card:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.25);background:#0e2135}.action-icon{width:39px;height:39px;display:grid;place-items:center;border-radius:12px;color:#62c9f8;background:rgba(56,189,248,.08)}.action-card b{font-size:12px;display:block}.action-card span{display:block;color:#647f9a;font-size:10px;margin-top:3px}.action-card>svg{margin-left:auto;color:#496984}.side-panel .panel-head h3{margin-bottom:13px}.status-line{display:flex;align-items:center;gap:9px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);color:#93a9bf;font-size:11px}.status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 10px #22c55e}.coming{margin-top:16px;padding:12px;border-radius:12px;background:rgba(56,189,248,.05);color:#6894b8;font-size:10px;line-height:1.5}
 @media(max-width:1000px){.login-page{grid-template-columns:1fr}.login-showcase{display:none}.metric-grid{grid-template-columns:1fr 1fr}.dashboard-grid{grid-template-columns:1fr}}
 @media(max-width:650px){.sidebar{width:78px;flex-basis:78px}.sidebar.open{width:78px}.sidebar.open .sidebar-brand div:not(.brand-mark),.sidebar.open .nav-item span,.sidebar.open .user-chip{display:none}.content{padding:20px}.topbar{padding:0 18px}.welcome{display:block}.date-pill{margin-top:15px;width:max-content}.metric-grid{grid-template-columns:1fr}.action-grid{grid-template-columns:1fr}.login-card{padding:28px}}
+
+
+.page-hero{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
+.page-hero h1{font:800 34px "Manrope";margin:7px 0}
+.page-hero h1 span{color:#38bdf8}
+.page-hero p{margin:0;color:#6e87a2;font-size:13px}
+.integration-badge{display:flex;align-items:center;gap:8px;padding:10px 13px;border:1px solid rgba(34,197,94,.18);background:rgba(34,197,94,.06);border-radius:12px;color:#86d9a3;font-size:11px}
+.pnr-search-panel{padding:20px;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.pnr-search-copy{display:flex;align-items:center;gap:12px;min-width:240px}
+.round-icon{width:43px;height:43px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(14,165,233,.2),rgba(37,99,235,.1));color:#6bd0fb;border:1px solid rgba(56,189,248,.12)}
+.pnr-search-copy b{display:block;font-size:13px}.pnr-search-copy span{display:block;color:#647f9a;font-size:10px;margin-top:4px}
+.pnr-form{display:flex;gap:9px}
+.pnr-form input{height:46px;flex:1;min-width:160px;border:1px solid rgba(255,255,255,.09);background:#071522;color:#fff;border-radius:12px;padding:0 14px;outline:none;font-size:15px;letter-spacing:.08em}
+.pnr-form input:focus{border-color:#38bdf8;box-shadow:0 0 0 4px rgba(56,189,248,.07)}
+.fetch-btn{border:0;white-space:nowrap}
+.pnr-error{grid-column:1/-1;margin:0}
+.success-box{grid-column:1/-1;display:flex;align-items:center;gap:7px;color:#91e2ac;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.16);padding:10px;border-radius:11px;font-size:11px}
+.pnr-result{margin-top:14px;border:1px solid rgba(56,189,248,.15);border-radius:21px;background:linear-gradient(145deg,#0b1c2e,#081522);box-shadow:0 20px 55px rgba(0,0,0,.15);overflow:hidden}
+.pnr-result-head{padding:22px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.06)}
+.pnr-result-head h2{font:800 27px "Manrope";margin:6px 0 2px;letter-spacing:.03em}
+.pnr-result-head span{color:#79a0be;font-size:10px}
+.fare-chip{display:flex;align-items:center;gap:4px;padding:9px 12px;border-radius:12px;background:rgba(56,189,248,.08);color:#8ddcff;font-weight:800}
+.journey-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:15px 24px}
+.info-card{display:flex;gap:10px;align-items:center;padding:13px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);border-radius:14px;min-width:0}
+.info-icon{width:33px;height:33px;border-radius:10px;display:grid;place-items:center;color:#69c9f4;background:rgba(56,189,248,.07);flex:0 0 auto}
+.info-card small{display:block;color:#5f7b96;font-size:9px}.info-card b{display:block;color:#dce9f7;font-size:11px;margin-top:3px;line-height:1.35;white-space:normal}
+.boarding-line{margin:0 24px;padding:10px 12px;border-radius:11px;background:#071522;color:#6e89a2;display:flex;align-items:center;gap:6px;font-size:10px}.boarding-line b{color:#b9d4e8}.boarding-line span{margin:0 5px;color:#334e68}
+.passenger-table{margin:15px 24px 0;border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden}
+.passenger-head,.passenger-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;align-items:center;gap:12px;padding:11px 13px}
+.passenger-head{background:#0d2033;color:#62809c;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.passenger-row{border-top:1px solid rgba(255,255,255,.05);color:#91a9bf;font-size:10px}
+.passenger-name{display:flex;align-items:center;gap:8px;color:#d5e6f4}.mini-avatar{width:27px;height:27px;display:grid;place-items:center;border-radius:9px;background:#17334d;color:#74cef6}
+.current-status{color:#8de0aa}
+.saved-strip{display:flex;align-items:center;gap:6px;padding:12px 24px;color:#64829e;font-size:9px;background:rgba(34,197,94,.025);border-top:1px solid rgba(255,255,255,.05)}.saved-strip span{color:#36546c}
+.recent-panel{margin-top:14px;padding:20px}
+.recent-panel .panel-head h3{margin-bottom:12px}
+.recent-list{display:grid;gap:7px}
+.recent-row{width:100%;border:1px solid rgba(255,255,255,.055);background:#0a1929;color:#d9e8f5;border-radius:13px;padding:11px 12px;display:grid;grid-template-columns:1.1fr 1fr 1fr auto;align-items:center;text-align:left;gap:12px}
+.recent-row:hover{background:#0d2135;border-color:rgba(56,189,248,.16);transform:translateY(-1px)}
+.recent-pnr b{display:block;font-size:11px;letter-spacing:.05em}.recent-pnr small{display:block;color:#5e7892;font-size:9px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.recent-route{display:flex;align-items:center;gap:5px;color:#8db0c8;font-size:10px}
+.recent-status{color:#80dba1;font-size:10px}.recent-status small{display:block;color:#5e7892;margin-top:3px}
+.recent-row>svg{color:#4d6d87}
+.empty-state{min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#58728d;font-size:11px}.empty-state.small{min-height:70px}.empty-state svg{color:#365975}
+.placeholder-page{min-height:330px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:42px}.placeholder-page h1{font:800 32px "Manrope";margin:8px 0}.placeholder-page p{color:#6e87a2;font-size:13px}.placeholder-icon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:rgba(56,189,248,.08);color:#64cdf7;margin-bottom:18px}
+.spin{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.action-card{transition:transform .2s ease,background .2s ease,border-color .2s ease}
+.nav-item{transition:.2s ease}
+.metric-card{transition:transform .2s ease,border-color .2s ease}.metric-card:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.12)}
+@media(max-width:900px){.journey-grid{grid-template-columns:1fr 1fr}.pnr-search-panel{grid-template-columns:1fr}.pnr-search-copy{min-width:0}.page-hero{align-items:flex-start;gap:12px}.recent-row{grid-template-columns:1fr 1fr}.recent-status{display:none}}
+@media(max-width:650px){.page-hero{display:block}.integration-badge{width:max-content;margin-top:14px}.pnr-form{display:grid;grid-template-columns:1fr}.fetch-btn{width:100%}.journey-grid{grid-template-columns:1fr}.pnr-result-head{padding:18px;align-items:flex-start}.journey-grid,.passenger-table{margin-left:14px;margin-right:14px}.boarding-line{margin-left:14px;margin-right:14px;flex-wrap:wrap}.saved-strip{padding:12px 14px}.recent-panel{padding:14px}.recent-row{grid-template-columns:1fr auto}.recent-route{display:none}}
