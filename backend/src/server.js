@@ -152,6 +152,57 @@ app.get("/api/dashboard/summary", requireAuth, (_req, res) => {
   });
 });
 
+
+const partySchema = z.object({
+  customerName: z.string().min(2).max(120),
+  whatsapp: z.string().max(20).optional().default(""),
+  email: z.string().email().max(160).optional().or(z.literal("")).default(""),
+  address: z.string().max(300).optional().default(""),
+  city: z.string().max(80).optional().default(""),
+  partyType: z.string().max(40).optional().default("Customer"),
+  status: z.enum(["ACTIVE","INACTIVE"]).optional().default("ACTIVE"),
+  balance: z.coerce.number().finite().optional().default(0)
+});
+
+app.get("/api/parties", requireAuth, (_req, res) => {
+  res.json({ parties: memory.parties });
+});
+
+app.post("/api/parties", requireAuth, (req, res) => {
+  const parsed = partySchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Please provide a valid customer name and party details." });
+  }
+  const now = new Date().toISOString();
+  const party = {
+    id: `PTY-${Date.now()}`,
+    ...parsed.data,
+    createdAt: now,
+    updatedAt: now
+  };
+  memory.parties.unshift(party);
+  res.status(201).json({ party });
+});
+
+app.get("/api/parties/:id", requireAuth, (req, res) => {
+  const party = memory.parties.find(item => item.id === req.params.id);
+  if (!party) return res.status(404).json({ message: "Party not found." });
+  res.json({ party });
+});
+
+app.put("/api/parties/:id", requireAuth, (req, res) => {
+  const index = memory.parties.findIndex(item => item.id === req.params.id);
+  if (index < 0) return res.status(404).json({ message: "Party not found." });
+  const parsed = partySchema.partial().safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ message: "Invalid party details." });
+  memory.parties[index] = {
+    ...memory.parties[index],
+    ...parsed.data,
+    updatedAt: new Date().toISOString()
+  };
+  res.json({ party: memory.parties[index] });
+});
+
 app.post("/api/pnr/fetch", requireAuth, pnrLimiter, async (req, res) => {
   const parsed = pnrSchema.safeParse(req.body);
 
