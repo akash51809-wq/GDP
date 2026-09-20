@@ -49,6 +49,12 @@ const partySchema = z.object({
   status: z.enum(["ACTIVE","INACTIVE"]).optional().default("ACTIVE"),
   balance: z.coerce.number().finite().optional().default(0)
 });
+const paymentSchema = z.object({
+  partyId: z.string().min(1),
+  partyName: z.string().min(2).max(120),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  amount: z.coerce.number().finite().positive()
+});
 const ticketSchema = z.object({
   partyId: z.string().min(1),
   partyName: z.string().min(2).max(120),
@@ -144,7 +150,40 @@ app.put("/api/parties/:id", requireAuth, (req, res) => {
   res.json({ party: memory.parties[index] });
 });
 
-app.get("/api/reports/balance-payments", requireAuth, (_req, res) => {\n  const parties = memory.parties\n    .filter(p => Number(p.balance || 0) > 0)\n    .map(p => ({ id: p.id, customerName: p.customerName, whatsapp: p.whatsapp, email: p.email, city: p.city, partyType: p.partyType, status: p.status, balance: Number(p.balance || 0) }))\n    .sort((a, b) => b.balance - a.balance || a.customerName.localeCompare(b.customerName));\n  const total = parties.reduce((sum, p) => sum + p.balance, 0);\n  res.json({ parties, total, count: parties.length });\n});\n\napp.get("/api/tickets", requireAuth, (_req, res) => res.json({ tickets: memory.tickets }));
+app.get("/api/reports/balance-payments", requireAuth, (_req, res) => {
+  const parties = memory.parties
+    .filter(p => Number(p.balance || 0) > 0)
+    .map(p => ({ id: p.id, customerName: p.customerName, whatsapp: p.whatsapp, email: p.email, city: p.city, partyType: p.partyType, status: p.status, balance: Number(p.balance || 0) }))
+    .sort((a, b) => b.balance - a.balance || a.customerName.localeCompare(b.customerName));
+  const total = parties.reduce((sum, p) => sum + p.balance, 0);
+  res.json({ parties, total, count: parties.length });
+});
+
+app.get("/api/reports/party-ledger/:partyId", requireAuth, (req, res) => {
+  const party = memory.parties.find(p => p.id === req.params.partyId);
+  if (!party) return res.status(404).json({ message: "Party not found." });
+  const entries = [
+    ...memory.tickets.filter(t => t.partyId === party.id).map(t => ({ id:t.id, date:t.bookingDate, description:"Ticket Booking", reference:t.pnr, dr:Number(t.amount||0), cr:0 })),
+    ...memory.payments.filter(p => p.partyId === party.id).map(p => ({ id:p.id, date:p.date, description:"Payment Received", reference:p.id, dr:0, cr:Number(p.amount||0) }))
+  ].sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id).localeCompare(String(b.id)));
+  let balance=0;
+  const ledger=entries.map((e,i)=>{balance+=e.dr-e.cr;return {...e,sr:i+1,balance}});
+  res.json({ party:{id:party.id,customerName:party.customerName,whatsapp:party.whatsapp,email:party.email,city:party.city}, ledger, totalDr:ledger.reduce((n,e)=>n+e.dr,0), totalCr:ledger.reduce((n,e)=>n+e.cr,0), balance });
+});
+
+app.get("/api/payments/received", requireAuth, (_req,res)=>res.json({payments:memory.payments}));
+app.post("/api/payments/received", requireAuth, (req,res)=>{
+  const parsed=paymentSchema.safeParse(req.body);
+  if(!parsed.success)return res.status(400).json({message:"Please provide valid payment details."});
+  const party=memory.parties.find(p=>p.id===parsed.data.partyId);
+  if(!party)return res.status(404).json({message:"Selected party was not found."});
+  const now=new Date().toISOString();
+  const payment={id:`PAY-${Date.now()}`,partyId:party.id,partyName:party.customerName,date:parsed.data.date,amount:parsed.data.amount,createdAt:now};
+  memory.payments.unshift(payment);
+  res.status(201).json({payment});
+});
+
+app.get("/api/tickets", requireAuth, (_req, res) => res.json({ tickets: memory.tickets }));
 app.post("/api/tickets", requireAuth, (req, res) => {
   const parsed = ticketSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Please provide valid booking details." });
