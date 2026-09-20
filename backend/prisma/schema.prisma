@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  STAFF
+  ACCOUNTS
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         UserRole   @default(STAFF)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+}
+
+model Party {
+  id          String   @id @default(cuid())
+  name        String
+  mobile      String
+  email       String?
+  address     String?
+  gstin       String?
+  openingDue  Decimal  @default(0) @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tickets     Ticket[]
+}
+
+model Ticket {
+  id              String   @id @default(cuid())
+  ticketNumber    String   @unique
+  pnr             String?
+  partyId         String
+  journeyDate     DateTime
+  trainNumber     String?
+  trainName       String?
+  fromStation     String?
+  toStation       String?
+  travelClass     String?
+  quota           String?
+  passengerCount  Int      @default(1)
+  railwayFare     Decimal  @default(0) @db.Decimal(12, 2)
+  serviceCharge   Decimal  @default(0) @db.Decimal(12, 2)
+  gatewayCharge   Decimal  @default(0) @db.Decimal(12, 2)
+  totalAmount     Decimal  @default(0) @db.Decimal(12, 2)
+  status          String   @default("BOOKED")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  party           Party    @relation(fields: [partyId], references: [id], onDelete: Restrict)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+}
