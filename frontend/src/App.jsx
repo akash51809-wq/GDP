@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Ticket, Users, WalletCards, BarChart3, Settings,
+  LayoutDashboard, Ticket, Users, WalletCards, CreditCard, BarChart3, Settings,
   LogOut, TrainFront, Plus, Search, Menu, X
 } from "lucide-react";
 
@@ -23,6 +23,7 @@ const menu = [
   [Ticket, "Ticket Booking", "tickets", "/ticket-booking"],
   [Users, "Party / Customer", "parties", "/party"],
   [WalletCards, "Ledger / Payments", "ledger", "/ledger"],
+  [CreditCard, "Receive Payment", "receive-payment", "/receive-payment"],
   [BarChart3, "Reports", "reports", "/reports"],
   [Settings, "Settings", "settings", "/settings"]
 ];
