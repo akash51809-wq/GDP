@@ -1,0 +1,8 @@
+.ticket-booking-page .fetch-btn{transition:transform .18s ease,box-shadow .18s ease}
+.ticket-booking-page .fetch-btn:hover:not(:disabled){transform:translateY(-1px)}
+.ticket-booking-page .recent-row{transition:transform .18s ease,background .18s ease,border-color .18s ease}
+.ticket-booking-page .recent-row:hover{background:#0d2135;border-color:rgba(56,189,248,.16);transform:translateY(-1px)}
+.ticket-booking-page .recent-arrow{margin-left:auto;color:#4d6d87;font-size:18px;line-height:1}
+.ticket-booking-page .recent-row:hover .recent-arrow{color:#8edcff}
+.ticket-booking-page .pnr-result{animation:ticketResultIn .28s ease both}
+@keyframes ticketResultIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
