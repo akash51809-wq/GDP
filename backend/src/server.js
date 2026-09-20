@@ -21,6 +21,8 @@ const memory = {
   payments: []
 };
 
+const authTokens = new Map();
+
 if (process.env.RAILKIT_API_KEY) configure(process.env.RAILKIT_API_KEY);
 
 app.set("trust proxy", 1);
@@ -56,6 +58,13 @@ const ticketSchema = z.object({
 });
 
 function requireAuth(req, res, next) {
+  const bearer = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.slice(7).trim()
+    : "";
+  if (bearer && authTokens.has(bearer)) {
+    req.session.userId = "demo-admin";
+    req.session.userRole = "ADMIN";
+  }
   if (!req.session.userId) return res.status(401).json({ message: "Authentication required." });
   next();
 }
@@ -70,12 +79,36 @@ app.post("/api/auth/login", loginLimiter, (req, res) => {
   const adminPassword = process.env.ADMIN_PASSWORD || "";
   if (!adminEmail || !adminPassword || email !== adminEmail || parsed.data.password !== adminPassword)
     return res.status(401).json({ message: "Email or password is incorrect." });
-  req.session.userId = "demo-admin"; req.session.userRole = "ADMIN";
-  res.json({ user: { id: "demo-admin", name: "Administrator", email: adminEmail, role: "ADMIN" } });
+
+  const token = crypto.randomBytes(32).toString("hex");
+  authTokens.set(token, { userId: "demo-admin", role: "ADMIN", createdAt: Date.now() });
+  req.session.userId = "demo-admin";
+  req.session.userRole = "ADMIN";
+
+  const sendLogin = () => res.json({
+    user: { id: "demo-admin", name: "Administrator", email: adminEmail, role: "ADMIN" },
+    token
+  });
+  if (typeof req.session.save === "function") req.session.save(() => sendLogin());
+  else sendLogin();
 });
 
-app.post("/api/auth/logout", requireAuth, (req, res) => req.session.destroy(() => res.json({ ok: true })));
+app.post("/api/auth/logout", (req, res) => {
+  const bearer = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.slice(7).trim()
+    : "";
+  if (bearer) authTokens.delete(bearer);
+  req.session.destroy(() => res.json({ ok: true }));
+});
+
 app.get("/api/auth/me", (req, res) => {
+  const bearer = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.slice(7).trim()
+    : "";
+  if (bearer && authTokens.has(bearer)) {
+    const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+    return res.json({ user: { id: "demo-admin", name: "Administrator", email: adminEmail, role: "ADMIN", status: "ACTIVE" } });
+  }
   if (!req.session.userId) return res.status(401).json({ message: "Not authenticated." });
   const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
   if (req.session.userId !== "demo-admin" || !adminEmail) return res.status(401).json({ message: "Not authenticated." });
