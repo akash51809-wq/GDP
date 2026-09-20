@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: raildesk-web
+    name: gdp-web
     runtime: node
     rootDir: frontend
     buildCommand: npm install && npm run build
@@ -10,16 +10,14 @@ services:
         sync: false
 
   - type: web
-    name: raildesk-api
+    name: gdp-api
     runtime: node
     rootDir: backend
-    buildCommand: npm install && npx prisma generate
+    buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        sync: false
       - key: SESSION_SECRET
         sync: false
       - key: FRONTEND_URL
