@@ -160,7 +160,7 @@ function DashboardHome({ user, summary, onNavigate }) {
           <div className="status-line"><span className="status-dot" /> Secure Session</div>
           <div className="status-line"><span className="status-dot" /> PostgreSQL Ready</div>
           <div className="status-line"><span className="status-dot" /> RailKit PNR Ready</div>
-          <div className="coming">Ticket Booking में PNR डालते ही RailKit से विवरण लाकर database में सुरक्षित किया जा सकता है।</div>
+          <div className="coming">Enter a PNR in Ticket Booking to fetch details from RailKit and save them in temporary testing storage.</div>
         </section>
       </div>
     </main>
