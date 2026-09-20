@@ -1,174 +1,181 @@
 import { useEffect, useState } from "react";
-import {
-  Ticket, TrainFront, Search, RefreshCw, CircleCheck, Database, ChevronRight,
-  CalendarDays, CreditCard, MapPin, Clock3, IndianRupee, Users, UserRound
-} from "lucide-react";
+import { Ticket, Search, Plus, CalendarDays, Hash, IndianRupee, UserRound, X, Save, RotateCcw, ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
 import "./TicketBookingPage.css";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
-function InfoCard({ icon, label, value }) {
-  return <div className="info-card"><div className="info-icon">{icon}</div><div><small>{label}</small><b>{value}</b></div></div>;
-}
-
-function PnrResult({ record }) {
-  const passengers = Array.isArray(record.passengers) ? record.passengers : [];
-  const journey = record.journey || {};
-  const booking = record.booking || {};
-  const chart = record.chart || {};
-
-  return (
-    <section className="pnr-result">
-      <div className="pnr-result-head">
-        <div>
-          <div className="eyebrow">LIVE PNR SNAPSHOT</div>
-          <h2>{record.pnr}</h2>
-          <span>{chart.status || record.chartStatus || "PNR details fetched"}</span>
-        </div>
-        <div className="fare-chip"><IndianRupee size={16} /> ₹{record.fare ?? booking.fare ?? "—"}</div>
-      </div>
-      <div className="pnr-overview">
-        <div className="pnr-train-block">
-          <div className="round-icon"><TrainFront size={23} /></div>
-          <div><small>TRAIN</small><strong>{record.trainNumber || "—"} • {record.trainName || "Train name unavailable"}</strong></div>
-        </div>
-        <div className="route-block">
-          <div><b>{record.sourceCode || journey.source?.code || "—"}</b><span>{record.sourceName || journey.source?.name || "Source unavailable"}</span></div>
-          <div className="route-line"><span></span><ChevronRight size={15} /><span></span></div>
-          <div><b>{record.destinationCode || journey.destination?.code || "—"}</b><span>{record.destinationName || journey.destination?.name || "Destination unavailable"}</span></div>
-        </div>
-      </div>
-      <div className="journey-grid">
-        <InfoCard icon={<CalendarDays />} label="Journey Date" value={record.journeyDateText || journey.dateOfJourney || "Not available"} />
-        <InfoCard icon={<CreditCard />} label="Class / Quota" value={(record.travelClass || journey.class || "—") + " / " + (record.quota || journey.quota || "—")} />
-        <InfoCard icon={<MapPin />} label="Boarding Point" value={(record.boardingName || journey.boardingPoint?.name || "—") + " (" + (record.boardingCode || journey.boardingPoint?.code || "—") + ")"} />
-        <InfoCard icon={<Clock3 />} label="Arrival" value={journey.arrivalDate || "Not available"} />
-        <InfoCard icon={<MapPin />} label="Distance" value={journey.distance != null ? journey.distance + " km" : "Not available"} />
-        <InfoCard icon={<IndianRupee />} label="Ticket Fare" value={booking.ticketFare != null ? "₹" + booking.ticketFare : "Not available"} />
-        <InfoCard icon={<IndianRupee />} label="Total Fare" value={booking.fare != null ? "₹" + booking.fare : record.fare != null ? "₹" + record.fare : "Not available"} />
-        <InfoCard icon={<CalendarDays />} label="Booking Date" value={booking.bookingDate || "Not available"} />
-      </div>
-      <div className="boarding-line">
-        <MapPin size={15} /> Boarding: <b>{record.boardingName || journey.boardingPoint?.name || record.boardingCode || journey.boardingPoint?.code || "—"}</b>
-        <span>•</span><Users size={15} /> Passengers: <b>{record.passengerCount ?? passengers.length}</b>
-        <span>•</span><CircleCheck size={15} /> Chart: <b>{chart.status || record.chartStatus || "Not available"}</b>
-      </div>
-      <div className="passenger-table">
-        <div className="passenger-head"><span>Passenger</span><span>Booking Status</span><span>Current Status</span></div>
-        {passengers.length ? passengers.map((p, i) => (
-          <div className="passenger-row" key={i}>
-            <div className="passenger-name">
-              <div className="mini-avatar"><UserRound size={14} /></div>
-              <div><b>{p.serialNumber || "Passenger " + (i + 1)}</b><small>{p.coachPosition != null ? "Coach Position: " + p.coachPosition : ""}</small></div>
-            </div>
-            <span>{p.booking?.details || p.booking?.status || "—"}{p.booking?.coach ? " • " + p.booking.coach : ""}{p.booking?.berthNo ? " • Berth " + p.booking.berthNo : ""}{p.booking?.berthCode ? " [" + p.booking.berthCode + "]" : ""}</span>
-            <span className="current-status">{p.current?.details || p.current?.status || "—"}{p.current?.coach ? " • " + p.current.coach : ""}{p.current?.berthNo ? " • Berth " + p.current.berthNo : ""}{p.current?.berthCode ? " [" + p.current.berthCode + "]" : ""}</span>
-          </div>
-        )) : <div className="empty-state small"><Users size={20} /><span>Passenger details are not available.</span></div>}
-      </div>
-      <div className="saved-strip">
-        <Database size={15} /> This PNR record is saved in temporary testing storage
-        <span>•</span> Last fetch: {record.fetchedAt ? new Date(record.fetchedAt).toLocaleString("en-IN") : "now"}
-      </div>
-    </section>
-  );
+function go(path) {
+  window.history.pushState({}, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
 export default function TicketBookingPage() {
+  const [parties, setParties] = useState([]);
+  const [partySearch, setPartySearch] = useState("");
+  const [selectedParty, setSelectedParty] = useState(null);
+  const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [pnr, setPnr] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
-  const [record, setRecord] = useState(null);
-  const [recent, setRecent] = useState([]);
+  const [amount, setAmount] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState({ type: "", text: "" });
 
-  async function loadRecent() {
-    const res = await fetch(API + "/api/pnr/recent", { credentials: "include" });
-    if (res.ok) {
-      const data = await res.json();
-      setRecent(data.records || []);
-    }
-  }
-
-  useEffect(() => { loadRecent().catch(() => {}); }, []);
-
-  async function fetchPnr(e) {
-    e.preventDefault();
-    setError(""); setNotice(""); setRecord(null);
-    const clean = pnr.replace(/\D/g, "");
-    if (clean.length !== 10) {
-      setError("Please enter a 10-digit PNR.");
-      return;
-    }
+  async function loadParties() {
     setLoading(true);
     try {
-      const res = await fetch(API + "/api/pnr/fetch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ pnr: clean })
-      });
+      const res = await fetch(API + "/api/parties", { credentials: "include" });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "PNR fetch failed.");
-      setRecord(data.record);
-      setNotice(data.message);
-      setPnr(clean);
-      await loadRecent();
+      if (!res.ok) throw new Error(data.message || "Could not load parties.");
+      setParties(data.parties || []);
     } catch (err) {
-      setError(err.message);
+      setNotice({ type: "error", text: err.message });
     } finally {
       setLoading(false);
     }
   }
 
-  function openRecord(item) {
-    setPnr(item.pnr);
-    setRecord(item);
-    setNotice("This record was loaded from temporary storage.");
-    setError("");
+  useEffect(() => { loadParties(); }, []);
+
+  const filteredParties = parties.filter(p => {
+    const q = partySearch.trim().toLowerCase();
+    if (!q) return true;
+    return [p.customerName, p.whatsapp, p.email, p.city].some(v => String(v || "").toLowerCase().includes(q));
+  }).slice(0, 8);
+
+  function selectParty(party) {
+    setSelectedParty(party);
+    setPartySearch(party.customerName);
+    setNotice({ type: "", text: "" });
+  }
+
+  function resetForm() {
+    setSelectedParty(null);
+    setPartySearch("");
+    setBookingDate(new Date().toISOString().slice(0, 10));
+    setPnr("");
+    setAmount("");
+    setNotice({ type: "", text: "" });
+  }
+
+  async function saveBooking(e) {
+    e.preventDefault();
+    if (!selectedParty) return setNotice({ type: "error", text: "Please choose a party first." });
+    if (!pnr.trim()) return setNotice({ type: "error", text: "Please enter PNR number." });
+    if (!amount || Number(amount) < 0) return setNotice({ type: "error", text: "Please enter a valid ticket amount." });
+
+    setSaving(true);
+    setNotice({ type: "", text: "" });
+    try {
+      const res = await fetch(API + "/api/tickets", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          partyId: selectedParty.id,
+          partyName: selectedParty.customerName,
+          bookingDate,
+          pnr: pnr.trim(),
+          amount: Number(amount)
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Could not save ticket.");
+      setNotice({ type: "success", text: "Ticket booking saved successfully." });
+      setPnr("");
+      setAmount("");
+    } catch (err) {
+      setNotice({ type: "error", text: err.message });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <main className="content ticket-booking-page">
-      <div className="page-hero">
-        <div><div className="eyebrow">TICKET BOOKING • RAILKIT</div><h1>PNR Center <span>✦</span></h1><p>Enter a 10-digit PNR — fetch live details and save them immediately in temporary testing storage.</p></div>
-        <div className="integration-badge"><CircleCheck size={17} /> RailKit Integration</div>
+      <div className="ticket-booking-hero">
+        <div>
+          <div className="eyebrow">BOOKING CENTER</div>
+          <h1><Ticket size={23} /> New Ticket Booking <span>✦</span></h1>
+          <p>Choose a party, enter booking details and save the ticket in a few steps.</p>
+        </div>
+        <button className="ticket-back" onClick={() => go("/dashboard")}><ArrowLeft size={14} /> Back</button>
       </div>
 
-      <section className="glass-panel pnr-search-panel">
-        <div className="pnr-search-copy">
-          <div className="round-icon"><Ticket size={22} /></div>
-          <div><b>Get PNR Details</b><span>PNR, train, journey, fare and passenger status</span></div>
-        </div>
-        <form className="pnr-form" onSubmit={fetchPnr}>
-          <input value={pnr} onChange={e => setPnr(e.target.value.replace(/\D/g, "").slice(0, 10))} inputMode="numeric" maxLength={10} placeholder="e.g. 5827194603" />
-          <button className="primary-small fetch-btn" disabled={loading}>{loading ? <><RefreshCw size={16} className="spin" /> Fetching…</> : <><Search size={16} /> Fetch PNR</>}</button>
-        </form>
-        {error && <div className="error-box pnr-error">{error}</div>}
-        {notice && !error && <div className="success-box"><CircleCheck size={15} /> {notice}</div>}
-      </section>
+      <form className="ticket-booking-card" onSubmit={saveBooking}>
+        <section className="ticket-section">
+          <div className="ticket-section-title">
+            <span>01</span>
+            <div><b>Choose Party</b><small>Select an existing party or add a new one</small></div>
+          </div>
 
-      {record && <PnrResult record={record} />}
+          <div className="party-picker">
+            <div className={"party-picker-input " + (selectedParty ? "selected" : "")}>
+              <UserRound size={16} />
+              <input
+                value={partySearch}
+                onChange={e => { setPartySearch(e.target.value); setSelectedParty(null); }}
+                placeholder="Type party name, WhatsApp, email or city..."
+                autoComplete="off"
+              />
+              {partySearch && <button type="button" onClick={() => { setPartySearch(""); setSelectedParty(null); }}><X size={14} /></button>}
+            </div>
+            <button type="button" className="add-new-party" onClick={() => go("/party/add")}><Plus size={15} /> Add New Party</button>
+          </div>
 
-      <section className="glass-panel recent-panel">
-        <div className="panel-head">
-          <div><div className="eyebrow">DATABASE</div><h3>Recent PNR Records</h3></div>
-          <button className="ghost-btn" onClick={() => loadRecent()} title="Refresh"><RefreshCw size={16} /></button>
+          {selectedParty && (
+            <div className="selected-party">
+              <div className="selected-avatar">{selectedParty.customerName?.[0] || "P"}</div>
+              <div><b>{selectedParty.customerName}</b><small>{selectedParty.partyType || "Customer"} • {selectedParty.city || "City not set"} • {selectedParty.whatsapp || "No WhatsApp"}</small></div>
+              <CheckCircle2 size={17} />
+            </div>
+          )}
+
+          {!selectedParty && partySearch.trim() && (
+            <div className="party-results">
+              {loading ? <div className="party-result-empty"><RefreshCw size={15} className="spin" /> Loading parties...</div> :
+               filteredParties.length ? filteredParties.map(p => (
+                <button type="button" className="party-result" key={p.id} onClick={() => selectParty(p)}>
+                  <span className="result-avatar">{p.customerName?.[0] || "P"}</span>
+                  <span><b>{p.customerName}</b><small>{p.partyType || "Customer"} • {p.whatsapp || p.email || p.city || "No contact"}</small></span>
+                </button>
+               )) : <div className="party-result-empty">No matching party found. Use <b>Add New Party</b> to create one.</div>}
+            </div>
+          )}
+
+          {!loading && parties.length === 0 && !partySearch && (
+            <div className="party-empty-note">No parties added yet. <button type="button" onClick={() => go("/party/add")}>＋ Add New Party</button></div>
+          )}
+        </section>
+
+        <section className="ticket-section">
+          <div className="ticket-section-title">
+            <span>02</span>
+            <div><b>Booking Details</b><small>Date, PNR and ticket amount</small></div>
+          </div>
+
+          <div className="ticket-fields">
+            <label className="ticket-field">
+              <span><CalendarDays size={13} /> Booking Date</span>
+              <input type="date" value={bookingDate} onChange={e => setBookingDate(e.target.value)} required />
+            </label>
+            <label className="ticket-field">
+              <span><Hash size={13} /> PNR Number</span>
+              <input value={pnr} onChange={e => setPnr(e.target.value)} placeholder="Enter PNR number" maxLength={30} required />
+            </label>
+            <label className="ticket-field amount-field">
+              <span><IndianRupee size={13} /> Ticket Amount</span>
+              <div><b>₹</b><input type="number" min="0" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" required /></div>
+            </label>
+          </div>
+        </section>
+
+        {notice.text && <div className={"ticket-notice " + notice.type}>{notice.text}</div>}
+
+        <div className="ticket-actions">
+          <button type="button" className="ticket-reset" onClick={resetForm} disabled={saving}><RotateCcw size={14} /> Reset</button>
+          <button type="submit" className="ticket-save" disabled={saving || loading}><Save size={15} /> {saving ? "Saving..." : "Save Booking"}</button>
         </div>
-        {recent.length === 0 ? <div className="empty-state"><Database size={25} /><span>No PNR records have been saved yet.</span></div> :
-          <div className="recent-list">{recent.map(item => (
-            <button className="recent-row" key={item.id} onClick={() => openRecord(item)}>
-              <div className="recent-pnr"><b>{item.pnr}</b><small>{item.trainNumber || "—"} {item.trainName || ""}</small></div>
-              <div className="recent-route">{item.sourceCode || "—"} <ChevronRight size={13} /> {item.destinationCode || "—"}</div>
-              <div className="recent-status">{item.chartStatus || "Status available"}<small>{item.passengerCount || 0} Passengers</small></div>
-              <ArrowUpRightSafe />
-            </button>
-          ))}</div>}
-      </section>
+      </form>
     </main>
   );
-}
-
-function ArrowUpRightSafe() {
-  return <span className="recent-arrow">↗</span>;
 }
