@@ -10,6 +10,7 @@ import TicketBookingPage from "./pages/TicketBookingPage";
 import PartyCenterPage from "./pages/PartyCenterPage";
 import AddPartyPage from "./pages/AddPartyPage";
 import LedgerPaymentsPage from "./pages/LedgerPaymentsPage";
+import ReceivePaymentPage from "./pages/ReceivePaymentPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 
@@ -36,6 +37,7 @@ const ROUTES = {
   "/user/add": "party-add",
   "/add-user": "party-add",
   "/ledger": "ledger",
+  "/receive-payment": "receive-payment",
   "/reports": "reports",
   "/report": "reports",
   "/settings": "settings"
@@ -118,6 +120,8 @@ function AppShell({ user, onLogout }) {
         return <AddPartyPage />;
       case "ledger":
         return <LedgerPaymentsPage />;
+      case "receive-payment":
+        return <ReceivePaymentPage />;
       case "reports":
         return <ReportsPage />;
       case "settings":
