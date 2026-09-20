@@ -49,7 +49,7 @@ function Login({ onLogin }) {
             <input value={email} onChange={e => setEmail(e.target.value)} type="email" placeholder="admin@example.com" autoComplete="username" />
           </label>
           <label>Password
-            <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="अपना Password डालें" autoComplete="current-password" />
+            <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Enter your password" autoComplete="current-password" />
           </label>
           {error && <div className="error-box">{error}</div>}
           <button className="primary-btn" disabled={loading}>
@@ -67,7 +67,7 @@ function Login({ onLogin }) {
         </div>
         <div className="mini-stats">
           <div><b>Tickets</b><span>From booking to refund</span></div>
-          <div><b>PNR</b><span>RailKit से Auto updates</span></div>
+          <div><b>PNR</b><span>RailKit auto updates</span></div>
           <div><b>Cloud</b><span>PostgreSQL powered</span></div>
         </div>
       </aside>
@@ -89,7 +89,7 @@ function Dashboard({ user, onLogout }) {
 
   const menu = [
     [LayoutDashboard, "Dashboard", "dashboard"],
-    [Ticket, "Tickets बुकिंग", "tickets"],
+    [Ticket, "Ticket Booking", "tickets"],
     [Users, "Party / Customer", "parties"],
     [WalletCards, "Ledger / Payments", "ledger"],
     [BarChart3, "Reports", "reports"],
@@ -115,15 +115,15 @@ function Dashboard({ user, onLogout }) {
         <header className="topbar">
           <button className="icon-btn" onClick={() => setOpen(v => !v)}>{open ? <X size={19} /> : <Menu size={19} />}</button>
           <div className="topbar-title"><span>{page === "dashboard" ? "Overview" : menu.find(m => m[2] === page)?.[1]}</span><small>Railway Agent Business Workspace</small></div>
-          <div className="top-actions"><button className="ghost-btn"><Search size={17} /></button><button className="primary-small" onClick={() => go("tickets")}><Plus size={17} /> नया Tickets</button></div>
+          <div className="top-actions"><button className="ghost-btn"><Search size={17} /></button><button className="primary-small" onClick={() => go("tickets")}><Plus size={17} /> New Ticket</button></div>
         </header>
 
         {page === "dashboard" && <DashboardHome user={user} summary={summary} onNavigate={go} />}
         {page === "tickets" && <PnrCenter />}
-        {page === "parties" && <Placeholder title="Party / Customer" icon={<Users />} text="अगला MODULE: ग्राहक प्रोफ़ाइल, खाता और Tickets इतिहास।" />}
+        {page === "parties" && <Placeholder title="Party / Customer" icon={<Users />} text="Next module: customer profiles, accounts and ticket history." />}
         {page === "ledger" && <Placeholder title="Ledger / Payments" icon={<WalletCards />} text="Next module: debit, credit, payments and digital ledger." />}
         {page === "reports" && <Placeholder title="Reports" icon={<BarChart3 />} text="Next module: booking, sales, outstanding and profit reports." />}
-        {page === "settings" && <Placeholder title="Settings" icon={<Settings />} text="सिस्टम Settings और इंटीग्रेशन यहाँ जोड़े जाएंगे।" />}
+        {page === "settings" && <Placeholder title="Settings" icon={<Settings />} text="System settings and integrations will be added here." />}
       </section>
     </div>
   );
@@ -133,12 +133,12 @@ function DashboardHome({ user, summary, onNavigate }) {
   return (
     <main className="content">
       <div className="welcome">
-        <div><div className="eyebrow">GOOD TO SEE YOU</div><h1>Hello, {user.name?.split(" ")[0]} <span>✦</span></h1><p>आज के Tickets और पार्टी गतिविधि पर एक नज़र डालिए।</p></div>
+        <div><div className="eyebrow">GOOD TO SEE YOU</div><h1>Hello, {user.name?.split(" ")[0]} <span>✦</span></h1><p>Take a look at today's tickets and party activity.</p></div>
         <div className="date-pill"><CalendarDays size={17} /> {new Date().toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" })}</div>
       </div>
 
       <div className="metric-grid">
-        <Metric icon={<Ticket />} label="कुल Tickets" value={summary.ticketCount} trend="Current" />
+        <Metric icon={<Ticket />} label="Total Tickets" value={summary.ticketCount} trend="Current" />
         <Metric icon={<Users />} label="Total Parties" value={summary.partyCount} trend="Active records" />
         <Metric icon={<IndianRupee />} label="Outstanding" value={"₹" + summary.outstanding} trend="From ledger" />
         <Metric icon={<TrainFront />} label="Today's Bookings" value={summary.todayBookings} trend="Manual booking" />
@@ -148,8 +148,8 @@ function DashboardHome({ user, summary, onNavigate }) {
         <section className="glass-panel large-panel">
           <div className="panel-head"><div><div className="eyebrow">QUICK ACTIONS</div><h3>Get Started</h3></div></div>
           <div className="action-grid">
-            <Action icon={<Ticket />} title="नया Tickets" text="मैनुअल रेलवे Tickets बनाएं" onClick={() => onNavigate("tickets")} />
-            <Action icon={<Users />} title="नई पार्टी" text="Create a customer account" onClick={() => onNavigate("parties")} />
+            <Action icon={<Ticket />} title="New Ticket" text="Create a manual railway ticket" onClick={() => onNavigate("tickets")} />
+            <Action icon={<Users />} title="New Party" text="Create a customer account" onClick={() => onNavigate("parties")} />
             <Action icon={<WalletCards />} title="Record Payment" text="Add cash, UPI or UTR" onClick={() => onNavigate("ledger")} />
             <Action icon={<BarChart3 />} title="View Reports" text="Booking and ledger reports" onClick={() => onNavigate("reports")} />
           </div>
@@ -160,7 +160,7 @@ function DashboardHome({ user, summary, onNavigate }) {
           <div className="status-line"><span className="status-dot" /> Secure Session</div>
           <div className="status-line"><span className="status-dot" /> PostgreSQL Ready</div>
           <div className="status-line"><span className="status-dot" /> RailKit PNR Ready</div>
-          <div className="coming">Tickets बुकिंग में PNR डालते ही RailKit से विवरण लाकर database में सुरक्षित किया जा सकता है।</div>
+          <div className="coming">Ticket Booking में PNR डालते ही RailKit से विवरण लाकर database में सुरक्षित किया जा सकता है।</div>
         </section>
       </div>
     </main>
@@ -277,8 +277,8 @@ function PnrResult({ record }) {
         <div className="fare-chip"><IndianRupee size={16} /> {record.fare ?? "—"}</div>
       </div>
       <div className="journey-grid">
-        <InfoCard icon={<TrainFront />} label="ट्रेन" value={record.trainNumber ? record.trainNumber + " • " + (record.trainName || "") : "Not available"} />
-        <InfoCard icon={<CalendarDays />} label="यात्रा" value={record.journeyDateText || "Not available"} />
+        <InfoCard icon={<TrainFront />} label="Train" value={record.trainNumber ? record.trainNumber + " • " + (record.trainName || "") : "Not available"} />
+        <InfoCard icon={<CalendarDays />} label="Journey" value={record.journeyDateText || "Not available"} />
         <InfoCard icon={<MapPin />} label="Route" value={(record.sourceName || record.sourceCode || "—") + " → " + (record.destinationName || record.destinationCode || "—")} />
         <InfoCard icon={<CreditCard />} label="Class / Quota" value={(record.travelClass || "—") + " / " + (record.quota || "—")} />
       </div>
@@ -291,9 +291,9 @@ function PnrResult({ record }) {
             <span>{p.booking?.details || p.booking?.status || "—"}</span>
             <span className="current-status">{p.current?.details || p.current?.status || "—"}</span>
           </div>
-        )) : <div className="empty-state small"><Users size={20} /><span>Passengers विवरण Not available है।</span></div>}
+        )) : <div className="empty-state small"><Users size={20} /><span>Passenger details are not available.</span></div>}
       </div>
-      <div className="saved-strip"><Database size={15} /> This PNR record is saved in temporary storage <span>•</span> अंतिम fetch: {record.fetchedAt ? new Date(record.fetchedAt).toLocaleString("en-IN") : "now"}</div>
+      <div className="saved-strip"><Database size={15} /> This PNR record is saved in temporary storage <span>•</span> Last fetch: {record.fetchedAt ? new Date(record.fetchedAt).toLocaleString("en-IN") : "now"}</div>
     </section>
   );
 }
@@ -303,7 +303,7 @@ function InfoCard({ icon, label, value }) {
 }
 
 function Placeholder({ title, icon, text }) {
-  return <main className="content"><section className="glass-panel placeholder-page"><div className="placeholder-icon">{icon}</div><div className="eyebrow">MODULE</div><h1>{title}</h1><p>{text}</p><div className="coming">हम MODULE को इसी premium design और PostgreSQL backend के साथ चरण-दर-चरण जोड़ेंगे।</div></section></main>;
+  return <main className="content"><section className="glass-panel placeholder-page"><div className="placeholder-icon">{icon}</div><div className="eyebrow">MODULE</div><h1>{title}</h1><p>{text}</p><div className="coming">We will add this module step by step with the same premium design and backend.</div></section></main>;
 }
 
 function Metric({ icon, label, value, trend }) {
@@ -329,6 +329,6 @@ export default function App() {
     setUser(null);
   }
 
-  if (checking) return <div className="loading-screen"><TrainFront size={34} /><span>RAILDESK तैयार हो रहा है…</span></div>;
+  if (checking) return <div className="loading-screen"><TrainFront size={34} /><span>RAILDESK is loading…</span></div>;
   return user ? <Dashboard user={user} onLogout={logout} /> : <Login onLogin={setUser} />;
 }
