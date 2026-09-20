@@ -17,7 +17,8 @@ const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toSt
 const memory = {
   pnrRecords: [],
   tickets: [],
-  parties: []
+  parties: [],
+  payments: []
 };
 
 if (process.env.RAILKIT_API_KEY) configure(process.env.RAILKIT_API_KEY);
