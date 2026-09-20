@@ -1,0 +1,6 @@
+.dashboard-page .metric-card,.dashboard-page .action-card,.dashboard-page .side-panel{transition:transform .2s ease,border-color .2s ease,background .2s ease}
+.dashboard-page .metric-card:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.12)}
+.dashboard-page .action-card:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.25);background:#0e2135}
+.dashboard-page .status-line{transition:background .2s ease;padding-left:5px;padding-right:5px;border-radius:8px}
+.dashboard-page .status-line:hover{background:rgba(56,189,248,.035)}
+@media(max-width:650px){.dashboard-page .welcome{display:block}.dashboard-page .date-pill{margin-top:15px;width:max-content}}
