@@ -17,17 +17,49 @@ import "./styles.css";
 const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 const menu = [
-  [LayoutDashboard, "Dashboard", "dashboard"],
-  [Ticket, "Ticket Booking", "tickets"],
-  [Users, "Party / Customer", "parties"],
-  [WalletCards, "Ledger / Payments", "ledger"],
-  [BarChart3, "Reports", "reports"],
-  [Settings, "Settings", "settings"]
+  [LayoutDashboard, "Dashboard", "dashboard", "/dashboard"],
+  [Ticket, "Ticket Booking", "tickets", "/ticket-booking"],
+  [Users, "Party / Customer", "parties", "/party"],
+  [WalletCards, "Ledger / Payments", "ledger", "/ledger"],
+  [BarChart3, "Reports", "reports", "/reports"],
+  [Settings, "Settings", "settings", "/settings"]
 ];
+
+const ROUTES = {
+  "/dashboard": "dashboard",
+  "/ticket-booking": "tickets",
+  "/tickets": "tickets",
+  "/party": "parties",
+  "/party/add": "party-add",
+  "/user": "parties",
+  "/user/add": "party-add",
+  "/add-user": "party-add",
+  "/ledger": "ledger",
+  "/reports": "reports",
+  "/report": "reports",
+  "/settings": "settings"
+};
+
+function getRoute(pathname = window.location.pathname) {
+  return ROUTES[pathname] || null;
+}
+
+function canonicalPath(key) {
+  return menu.find(item => item[2] === key)?.[3] || "/dashboard";
+}
+
+function navigate(path, replace = false) {
+  if (replace) {
+    window.history.replaceState({}, "", path);
+  } else {
+    window.history.pushState({}, "", path);
+  }
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
 
 function AppShell({ user, onLogout }) {
   const [open, setOpen] = useState(true);
-  const [page, setPage] = useState("dashboard");
+  const [page, setPage] = useState(() => getRoute() || "dashboard");
   const [summary, setSummary] = useState({
     partyCount: 0,
     ticketCount: 0,
@@ -36,14 +68,43 @@ function AppShell({ user, onLogout }) {
   });
 
   useEffect(() => {
+    const handlePopState = () => {
+      const route = getRoute();
+
+      if (route) {
+        setPage(route);
+      } else {
+        navigate("/dashboard", true);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    const route = getRoute();
+
+    if (!route) {
+      navigate("/dashboard", true);
+    } else {
+      setPage(route);
+    }
+  }, []);
+
+  useEffect(() => {
     fetch(API + "/api/dashboard/summary", { credentials: "include" })
       .then(r => r.ok ? r.json() : null)
       .then(d => d && setSummary(d))
       .catch(() => {});
   }, []);
 
-  function go(key) {
-    setPage(key);
+  function go(keyOrPath) {
+    const path = keyOrPath.startsWith("/")
+      ? keyOrPath
+      : canonicalPath(keyOrPath);
+
+    navigate(path);
   }
 
   function renderPage() {
@@ -51,6 +112,8 @@ function AppShell({ user, onLogout }) {
       case "tickets":
         return <TicketBookingPage />;
       case "parties":
+        return <PartyCenterPage />;
+      case "party-add":
         return <PartyCenterPage />;
       case "ledger":
         return <LedgerPaymentsPage />;
@@ -66,7 +129,9 @@ function AppShell({ user, onLogout }) {
 
   const currentTitle = page === "dashboard"
     ? "Overview"
-    : menu.find(item => item[2] === page)?.[1] || "Overview";
+    : page === "party-add"
+      ? "Add Party / Customer"
+      : menu.find(item => item[2] === page)?.[1] || "Overview";
 
   return (
     <div className="app-shell">
@@ -77,10 +142,10 @@ function AppShell({ user, onLogout }) {
         </div>
 
         <nav>
-          {menu.map(([Icon, label, key]) => (
+          {menu.map(([Icon, label, key, path]) => (
             <button
               key={key}
-              onClick={() => go(key)}
+              onClick={() => go(path)}
               className={"nav-item " + (page === key ? "active" : "")}
             >
               <Icon size={19} />
@@ -116,7 +181,7 @@ function AppShell({ user, onLogout }) {
 
           <div className="top-actions">
             <button className="ghost-btn"><Search size={17} /></button>
-            <button className="primary-small" onClick={() => go("tickets")}>
+            <button className="primary-small" onClick={() => go("/ticket-booking")}>
               <Plus size={17} /> New Ticket
             </button>
           </div>
@@ -135,16 +200,45 @@ export default function App() {
   useEffect(() => {
     fetch(API + "/api/auth/me", { credentials: "include" })
       .then(r => r.ok ? r.json() : null)
-      .then(d => d?.user && setUser(d.user))
+      .then(d => {
+        if (d?.user) {
+          setUser(d.user);
+        } else if (window.location.pathname !== "/login") {
+          navigate("/login", true);
+        }
+      })
+      .catch(() => {
+        if (window.location.pathname !== "/login") {
+          navigate("/login", true);
+        }
+      })
       .finally(() => setChecking(false));
   }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!user && window.location.pathname !== "/login") {
+        navigate("/login", true);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [user]);
+
+  function handleLogin(loggedInUser) {
+    setUser(loggedInUser);
+    navigate("/dashboard", true);
+  }
 
   async function logout() {
     await fetch(API + "/api/auth/logout", {
       method: "POST",
       credentials: "include"
     }).catch(() => {});
+
     setUser(null);
+    navigate("/login", true);
   }
 
   if (checking) {
@@ -156,7 +250,9 @@ export default function App() {
     );
   }
 
-  return user
-    ? <AppShell user={user} onLogout={logout} />
-    : <LoginPage onLogin={setUser} />;
+  if (!user) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  return <AppShell user={user} onLogout={logout} />;
 }
