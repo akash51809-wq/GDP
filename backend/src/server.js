@@ -144,7 +144,7 @@ app.put("/api/parties/:id", requireAuth, (req, res) => {
   res.json({ party: memory.parties[index] });
 });
 
-app.get("/api/tickets", requireAuth, (_req, res) => res.json({ tickets: memory.tickets }));
+app.get("/api/reports/balance-payments", requireAuth, (_req, res) => {\n  const parties = memory.parties\n    .filter(p => Number(p.balance || 0) > 0)\n    .map(p => ({ id: p.id, customerName: p.customerName, whatsapp: p.whatsapp, email: p.email, city: p.city, partyType: p.partyType, status: p.status, balance: Number(p.balance || 0) }))\n    .sort((a, b) => b.balance - a.balance || a.customerName.localeCompare(b.customerName));\n  const total = parties.reduce((sum, p) => sum + p.balance, 0);\n  res.json({ parties, total, count: parties.length });\n});\n\napp.get("/api/tickets", requireAuth, (_req, res) => res.json({ tickets: memory.tickets }));
 app.post("/api/tickets", requireAuth, (req, res) => {
   const parsed = ticketSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Please provide valid booking details." });
