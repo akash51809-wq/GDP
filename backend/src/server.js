@@ -1,4 +1,5 @@
 import "dotenv/config";
+import crypto from "node:crypto";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -12,7 +13,7 @@ const PORT = Number(process.env.PORT || 3001);
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").trim().split(/\s+/)[0];
 const isProduction = process.env.NODE_ENV === "production";
 
-if (!process.env.SESSION_SECRET) throw new Error("SESSION_SECRET is required.");
+const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
 
 const memory = {
   pnrRecords: [],
@@ -33,7 +34,7 @@ app.use(cors({
 app.use(express.json({ limit: "1mb" }));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   cookie: {
