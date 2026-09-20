@@ -102,3 +102,18 @@ button{cursor:pointer}
 .metric-card{transition:transform .2s ease,border-color .2s ease}.metric-card:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.12)}
 @media(max-width:900px){.journey-grid{grid-template-columns:1fr 1fr}.pnr-search-panel{grid-template-columns:1fr}.pnr-search-copy{min-width:0}.page-hero{align-items:flex-start;gap:12px}.recent-row{grid-template-columns:1fr 1fr}.recent-status{display:none}}
 @media(max-width:650px){.page-hero{display:block}.integration-badge{width:max-content;margin-top:14px}.pnr-form{display:grid;grid-template-columns:1fr}.fetch-btn{width:100%}.journey-grid{grid-template-columns:1fr}.pnr-result-head{padding:18px;align-items:flex-start}.journey-grid,.passenger-table{margin-left:14px;margin-right:14px}.boarding-line{margin-left:14px;margin-right:14px;flex-wrap:wrap}.saved-strip{padding:12px 14px}.recent-panel{padding:14px}.recent-row{grid-template-columns:1fr auto}.recent-route{display:none}}
+
+.pnr-overview{display:grid;grid-template-columns:.8fr 1.2fr;gap:14px;padding:18px 24px;border-bottom:1px solid rgba(255,255,255,.05)}
+.pnr-train-block{display:flex;align-items:center;gap:12px;padding:15px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);border-radius:15px}
+.pnr-train-block small{display:block;color:#5f7b96;font-size:9px;letter-spacing:.1em}
+.pnr-train-block strong{display:block;color:#dce9f7;font-size:13px;margin-top:4px}
+.route-block{display:flex;align-items:center;justify-content:center;gap:12px;padding:12px 18px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.025);border-radius:15px}
+.route-block>div:not(.route-line){text-align:center;min-width:100px}
+.route-block b{display:block;color:#dce9f7;font-size:14px}
+.route-block span{display:block;color:#617d98;font-size:9px;margin-top:3px}
+.route-line{display:flex;align-items:center;gap:4px;color:#4d7593;flex:1}
+.route-line span{height:1px;background:rgba(56,189,248,.25);flex:1}
+.info-card small{letter-spacing:.03em}
+.passenger-name>div:last-child small{display:block;color:#58748d;font-size:8px;margin-top:2px}
+@media(max-width:900px){.pnr-overview{grid-template-columns:1fr}.route-block{justify-content:space-between}}
+@media(max-width:650px){.pnr-overview{padding:14px}.route-block{gap:5px;padding:10px}.route-block>div:not(.route-line){min-width:70px}.route-block b{font-size:12px}.route-block span{font-size:8px}}
