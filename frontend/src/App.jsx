@@ -270,34 +270,86 @@ function PnrCenter() {
 
 function PnrResult({ record }) {
   const passengers = Array.isArray(record.passengers) ? record.passengers : [];
+  const journey = record.journey || {};
+  const booking = record.booking || {};
+  const chart = record.chart || {};
+
   return (
     <section className="pnr-result">
       <div className="pnr-result-head">
-        <div><div className="eyebrow">LIVE PNR SNAPSHOT</div><h2>{record.pnr}</h2><span>{record.chartStatus || "PNR details fetched"}</span></div>
-        <div className="fare-chip"><IndianRupee size={16} /> {record.fare ?? "—"}</div>
+        <div>
+          <div className="eyebrow">LIVE PNR SNAPSHOT</div>
+          <h2>{record.pnr}</h2>
+          <span>{chart.status || record.chartStatus || "PNR details fetched"}</span>
+        </div>
+        <div className="fare-chip"><IndianRupee size={16} /> ₹{record.fare ?? booking.fare ?? "—"}</div>
       </div>
+
+      <div className="pnr-overview">
+        <div className="pnr-train-block">
+          <div className="round-icon"><TrainFront size={23} /></div>
+          <div>
+            <small>TRAIN</small>
+            <strong>{record.trainNumber || "—"} • {record.trainName || "Train name unavailable"}</strong>
+          </div>
+        </div>
+        <div className="route-block">
+          <div><b>{record.sourceCode || journey.source?.code || "—"}</b><span>{record.sourceName || journey.source?.name || "Source unavailable"}</span></div>
+          <div className="route-line"><span></span><ChevronRight size={15} /><span></span></div>
+          <div><b>{record.destinationCode || journey.destination?.code || "—"}</b><span>{record.destinationName || journey.destination?.name || "Destination unavailable"}</span></div>
+        </div>
+      </div>
+
       <div className="journey-grid">
-        <InfoCard icon={<TrainFront />} label="Train" value={record.trainNumber ? record.trainNumber + " • " + (record.trainName || "") : "Not available"} />
-        <InfoCard icon={<CalendarDays />} label="Journey" value={record.journeyDateText || "Not available"} />
-        <InfoCard icon={<MapPin />} label="Route" value={(record.sourceName || record.sourceCode || "—") + " → " + (record.destinationName || record.destinationCode || "—")} />
-        <InfoCard icon={<CreditCard />} label="Class / Quota" value={(record.travelClass || "—") + " / " + (record.quota || "—")} />
+        <InfoCard icon={<CalendarDays />} label="Journey Date" value={record.journeyDateText || journey.dateOfJourney || "Not available"} />
+        <InfoCard icon={<CreditCard />} label="Class / Quota" value={(record.travelClass || journey.class || "—") + " / " + (record.quota || journey.quota || "—")} />
+        <InfoCard icon={<MapPin />} label="Boarding Point" value={(record.boardingName || journey.boardingPoint?.name || "—") + " (" + (record.boardingCode || journey.boardingPoint?.code || "—") + ")"} />
+        <InfoCard icon={<Clock3 />} label="Arrival" value={journey.arrivalDate || "Not available"} />
+        <InfoCard icon={<MapPin />} label="Distance" value={journey.distance != null ? journey.distance + " km" : "Not available"} />
+        <InfoCard icon={<IndianRupee />} label="Ticket Fare" value={booking.ticketFare != null ? "₹" + booking.ticketFare : "Not available"} />
+        <InfoCard icon={<IndianRupee />} label="Total Fare" value={booking.fare != null ? "₹" + booking.fare : record.fare != null ? "₹" + record.fare : "Not available"} />
+        <InfoCard icon={<CalendarDays />} label="Booking Date" value={booking.bookingDate || "Not available"} />
       </div>
-      <div className="boarding-line"><MapPin size={15} /> Boarding: <b>{record.boardingName || record.boardingCode || "—"}</b><span>•</span><Clock3 size={15} /> Passengers: <b>{record.passengerCount}</b></div>
+
+      <div className="boarding-line">
+        <MapPin size={15} /> Boarding: <b>{record.boardingName || journey.boardingPoint?.name || record.boardingCode || journey.boardingPoint?.code || "—"}</b>
+        <span>•</span>
+        <Users size={15} /> Passengers: <b>{record.passengerCount ?? passengers.length}</b>
+        <span>•</span>
+        <CircleCheck size={15} /> Chart: <b>{chart.status || record.chartStatus || "Not available"}</b>
+      </div>
+
       <div className="passenger-table">
-        <div className="passenger-head"><span>Passengers</span><span>Booking Status</span><span>Current Status</span></div>
+        <div className="passenger-head"><span>Passenger</span><span>Booking Status</span><span>Current Status</span></div>
         {passengers.length ? passengers.map((p, i) => (
           <div className="passenger-row" key={i}>
-            <div className="passenger-name"><div className="mini-avatar"><UserRound size={14} /></div><b>{p.serialNumber || "Passenger " + (i + 1)}</b></div>
-            <span>{p.booking?.details || p.booking?.status || "—"}</span>
-            <span className="current-status">{p.current?.details || p.current?.status || "—"}</span>
+            <div className="passenger-name">
+              <div className="mini-avatar"><UserRound size={14} /></div>
+              <div><b>{p.serialNumber || "Passenger " + (i + 1)}</b><small>{p.coachPosition != null ? "Coach Position: " + p.coachPosition : ""}</small></div>
+            </div>
+            <span>
+              {p.booking?.details || p.booking?.status || "—"}
+              {p.booking?.coach ? " • " + p.booking.coach : ""}
+              {p.booking?.berthNo ? " • Berth " + p.booking.berthNo : ""}
+              {p.booking?.berthCode ? " [" + p.booking.berthCode + "]" : ""}
+            </span>
+            <span className="current-status">
+              {p.current?.details || p.current?.status || "—"}
+              {p.current?.coach ? " • " + p.current.coach : ""}
+              {p.current?.berthNo ? " • Berth " + p.current.berthNo : ""}
+              {p.current?.berthCode ? " [" + p.current.berthCode + "]" : ""}
+            </span>
           </div>
         )) : <div className="empty-state small"><Users size={20} /><span>Passenger details are not available.</span></div>}
       </div>
-      <div className="saved-strip"><Database size={15} /> This PNR record is saved in temporary storage <span>•</span> Last fetch: {record.fetchedAt ? new Date(record.fetchedAt).toLocaleString("en-IN") : "now"}</div>
+
+      <div className="saved-strip">
+        <Database size={15} /> This PNR record is saved in temporary testing storage
+        <span>•</span> Last fetch: {record.fetchedAt ? new Date(record.fetchedAt).toLocaleString("en-IN") : "now"}
+      </div>
     </section>
   );
 }
-
 function InfoCard({ icon, label, value }) {
   return <div className="info-card"><div className="info-icon">{icon}</div><div><small>{label}</small><b>{value}</b></div></div>;
 }
