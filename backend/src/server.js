@@ -156,12 +156,12 @@ app.post("/api/pnr/fetch", requireAuth, pnrLimiter, async (req, res) => {
   const parsed = pnrSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    return res.status(400).json({ message: "10 अंकों का सही PNR डालें।" });
+    return res.status(400).json({ message: "Enter a valid 10-digit PNR." });
   }
 
   if (!process.env.RAILKIT_API_KEY) {
     return res.status(503).json({
-      message: "RailKit API key configured नहीं है। अभी PNR fetch के लिए RAILKIT_API_KEY डालें।"
+      message: "RailKit API key is not configured. Add RAILKIT_API_KEY to enable PNR fetching."
     });
   }
 
@@ -170,7 +170,7 @@ app.post("/api/pnr/fetch", requireAuth, pnrLimiter, async (req, res) => {
 
     if (!result?.success || !result?.data) {
       return res.status(502).json({
-        message: result?.error || "PNR details प्राप्त नहीं हो सकीं।"
+        message: result?.error || "PNR details could not be retrieved."
       });
     }
 
@@ -215,13 +215,13 @@ app.post("/api/pnr/fetch", requireAuth, pnrLimiter, async (req, res) => {
     }
 
     res.json({
-      message: "PNR details fetch होकर temporary testing storage में save हो गईं।",
+      message: "PNR details were fetched and saved in temporary testing storage.",
       record: saved
     });
   } catch (error) {
     console.error("RailKit PNR error:", error);
     res.status(502).json({
-      message: error?.message || "RailKit से PNR fetch नहीं हो सका।"
+      message: error?.message || "PNR could not be fetched from RailKit."
     });
   }
 });
