@@ -8,6 +8,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import TicketBookingPage from "./pages/TicketBookingPage";
 import PartyCenterPage from "./pages/PartyCenterPage";
+import AddPartyPage from "./pages/AddPartyPage";
 import LedgerPaymentsPage from "./pages/LedgerPaymentsPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -114,7 +115,7 @@ function AppShell({ user, onLogout }) {
       case "parties":
         return <PartyCenterPage />;
       case "party-add":
-        return <PartyCenterPage />;
+        return <AddPartyPage />;
       case "ledger":
         return <LedgerPaymentsPage />;
       case "reports":
