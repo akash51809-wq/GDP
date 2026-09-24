@@ -20,7 +20,11 @@ const settingsSchema = new mongoose.Schema(
     dateFormat: { type: String, default: "DD/MM/YYYY" },
     phoneCountryCode: { type: String, default: "+91" },
     lowBalanceAlert: { type: Boolean, default: true },
-    autoRefresh: { type: Boolean, default: true }
+    autoRefresh: { type: Boolean, default: true },
+    googleConnected: { type: Boolean, default: false },
+    googleRefreshToken: { type: String, default: "" },
+    googleConnectedAt: { type: Date, default: null },
+    googleDriveFolderId: { type: String, default: "" }
   },
   { timestamps: true }
 );

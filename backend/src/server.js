@@ -12,6 +12,11 @@ import { configure, checkPNRStatus } from "railkit";
 import { z } from "zod";
 import { connectDB, isDbConnected } from "./db.js";
 import { Party, Ticket, Payment, PnrRecord, Settings, User } from "./models/index.js";
+import {
+  generateGoogleAuthUrl,
+  handleGoogleCallback,
+  getGoogleStatus
+} from "./services/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -605,6 +610,59 @@ app.put("/api/settings", requireAuth, async (req, res) => {
     }
   }
   res.json({ settings: req.body, message: "Settings saved temporarily." });
+});
+
+// Google Drive & Gmail API Integration
+app.get("/api/google/status", requireAuth, async (_req, res) => {
+  try {
+    const status = await getGoogleStatus();
+    res.json(status);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+app.get("/api/google/auth-url", requireAuth, (_req, res) => {
+  try {
+    const url = generateGoogleAuthUrl();
+    res.json({ url });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+app.get("/api/google/callback", async (req, res) => {
+  const { code } = req.query;
+  if (!code) {
+    return res.status(400).send("Authorization code missing.");
+  }
+  try {
+    await handleGoogleCallback(code);
+    res.redirect("/settings?google=connected");
+  } catch (err) {
+    console.error("Google OAuth callback error:", err);
+    res.status(500).send("Failed to authorize Google account: " + err.message);
+  }
+});
+
+app.post("/api/google/disconnect", requireAuth, async (_req, res) => {
+  if (isDbConnected()) {
+    try {
+      await Settings.findOneAndUpdate(
+        { key: "global" },
+        {
+          $set: {
+            googleConnected: false,
+            googleRefreshToken: "",
+            googleConnectedAt: null
+          }
+        }
+      );
+    } catch (e) {
+      console.error("Disconnect Google error:", e);
+    }
+  }
+  res.json({ ok: true, message: "Google account disconnected." });
 });
 
 // Serve static frontend build assets
