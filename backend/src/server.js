@@ -108,6 +108,8 @@ app.get("/api/health", (_req, res) => res.json({
   railkitConfigured: Boolean(process.env.RAILKIT_API_KEY)
 }));
 
+app.get("/api/ping", (_req, res) => res.status(200).send("pong"));
+
 app.post("/api/auth/login", loginLimiter, async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Invalid login details." });
