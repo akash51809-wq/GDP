@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { TrainFront, ArrowUpRight, ShieldCheck } from "lucide-react";
 import "./LoginPage.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API } from "../apiConfig";
 
 export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState("");

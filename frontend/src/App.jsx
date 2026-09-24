@@ -17,8 +17,7 @@ import BalancePaymentPage from "./pages/BalancePaymentPage";
 import PartyLedgerPage from "./pages/PartyLedgerPage";
 
 import "./styles.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API } from "./apiConfig";
 
 const menu = [
   [LayoutDashboard, "Dashboard", "dashboard", "/dashboard"],

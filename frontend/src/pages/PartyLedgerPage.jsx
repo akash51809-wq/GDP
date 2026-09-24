@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search, Download, Mail, MessageCircle, RefreshCw, BookOpen } from "lucide-react";
 import "./PartyLedgerPage.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API } from "../apiConfig";
 
 function authHeaders() {
   const token = localStorage.getItem("raildesk_auth_token");

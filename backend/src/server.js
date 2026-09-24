@@ -6,10 +6,16 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import session from "express-session";
 import bcrypt from "bcryptjs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { configure, checkPNRStatus } from "railkit";
 import { z } from "zod";
 import { connectDB, isDbConnected } from "./db.js";
 import { Party, Ticket, Payment, PnrRecord, Settings, User } from "./models/index.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.resolve(__dirname, "../../frontend/dist");
 
 const app = express();
 const PORT = Number(process.env.PORT || 3001);
@@ -30,8 +36,11 @@ const authTokens = new Map();
 if (process.env.RAILKIT_API_KEY) configure(process.env.RAILKIT_API_KEY);
 
 app.set("trust proxy", 1);
-app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false
+}));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "1mb" }));
 app.use(session({
   secret: SESSION_SECRET,
@@ -590,6 +599,17 @@ app.put("/api/settings", requireAuth, async (req, res) => {
     }
   }
   res.json({ settings: req.body, message: "Settings saved temporarily." });
+});
+
+// Serve static frontend build assets
+app.use(express.static(distPath));
+
+// Fallback all non-API GET requests to frontend index.html for Single Page App
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api/")) return next();
+  res.sendFile(path.join(distPath, "index.html"), (err) => {
+    if (err) next();
+  });
 });
 
 app.use((err, _req, res, _next) => {

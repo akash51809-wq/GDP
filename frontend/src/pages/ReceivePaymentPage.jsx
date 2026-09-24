@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { WalletCards, Plus, Search, CalendarDays, IndianRupee, UserRound, X, Save, ArrowLeft, RefreshCw } from "lucide-react";
 import "./ReceivePaymentPage.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API } from "../apiConfig";
 const today = () => new Date().toISOString().slice(0, 10);
 
 function go(path) { window.history.pushState({}, "", path); window.dispatchEvent(new PopStateEvent("popstate")); }

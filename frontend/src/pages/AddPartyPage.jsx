@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { ArrowLeft, Save, UserPlus, RotateCcw } from "lucide-react";
 import "./AddPartyPage.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API } from "../apiConfig";
 
 const initialForm = {
   customerName: "",

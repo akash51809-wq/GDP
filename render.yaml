@@ -1,32 +1,19 @@
 services:
   - type: web
-    name: gdp-web
+    name: gdp
     runtime: node
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    startCommand: npx serve -s dist -l $PORT
-    envVars:
-      - key: VITE_API_URL
-        sync: false
-
-  - type: web
-    name: gdp-api
-    runtime: node
-    rootDir: backend
-    buildCommand: npm install
+    buildCommand: npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: SESSION_SECRET
-        sync: false
-      - key: FRONTEND_URL
+      - key: MONGODB_URI
         sync: false
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-      - key: RAILKIT_API_KEY
+      - key: SESSION_SECRET
         sync: false
-      - key: MONGODB_URI
+      - key: RAILKIT_API_KEY
         sync: false

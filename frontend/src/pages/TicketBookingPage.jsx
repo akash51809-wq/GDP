@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { Ticket, Plus, CalendarDays, Hash, IndianRupee, UserRound, X, Save, RotateCcw, ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
 import "./TicketBookingPage.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API } from "../apiConfig";
 
 function go(path) {
   window.history.pushState({}, "", path);

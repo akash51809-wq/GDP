@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Search, RefreshCw, WalletCards, Users, IndianRupee } from "lucide-react";
 import "./BalancePaymentPage.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API } from "../apiConfig";
 function authHeaders(){const token=localStorage.getItem("raildesk_auth_token");return token?{Authorization:"Bearer "+token}:{}}
 const money=v=>"₹"+Number(v||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
 

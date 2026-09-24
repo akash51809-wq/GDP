@@ -5,8 +5,7 @@ import {
   ChevronLeft, ChevronRight, RefreshCw, IndianRupee
 } from "lucide-react";
 import "./PartyCenterPage.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API } from "../apiConfig";
 
 export default function PartyCenterPage() {
   const [parties, setParties] = useState([]);
