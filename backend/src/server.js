@@ -605,11 +605,13 @@ app.put("/api/settings", requireAuth, async (req, res) => {
 app.use(express.static(distPath));
 
 // Fallback all non-API GET requests to frontend index.html for Single Page App
-app.get("*", (req, res, next) => {
-  if (req.path.startsWith("/api/")) return next();
-  res.sendFile(path.join(distPath, "index.html"), (err) => {
-    if (err) next();
-  });
+app.use((req, res, next) => {
+  if (req.method === "GET" && !req.path.startsWith("/api/")) {
+    return res.sendFile(path.join(distPath, "index.html"), (err) => {
+      if (err) next();
+    });
+  }
+  next();
 });
 
 app.use((err, _req, res, _next) => {
