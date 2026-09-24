@@ -4,3 +4,4 @@ export { Payment } from "./Payment.js";
 export { PnrRecord } from "./PnrRecord.js";
 export { Settings } from "./Settings.js";
 export { User } from "./User.js";
+export { QrScan } from "./QrScan.js";

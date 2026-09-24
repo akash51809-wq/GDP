@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Ticket, Users, WalletCards, CreditCard, BarChart3, Settings,
-  LogOut, TrainFront, Plus, Search, Menu, X
+  LogOut, TrainFront, Plus, Search, Menu, X, QrCode
 } from "lucide-react";
 
 import LoginPage from "./pages/LoginPage";
@@ -15,6 +15,7 @@ import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import BalancePaymentPage from "./pages/BalancePaymentPage";
 import PartyLedgerPage from "./pages/PartyLedgerPage";
+import QrScannerPage from "./pages/QrScannerPage";
 
 import "./styles.css";
 import { API } from "./apiConfig";
@@ -28,6 +29,7 @@ const menu = [
   [BarChart3, "Reports", "reports", "/reports"],
   [WalletCards, "Balance Payment", "balance-payment", "/reports/balance-payment"],
   [WalletCards, "Party Ledger", "party-ledger", "/reports/party-ledger"],
+  [QrCode, "QR Scanner", "qr-scanner", "/qr-scanner"],
   [Settings, "Settings", "settings", "/settings"]
 ];
 
@@ -46,6 +48,7 @@ const ROUTES = {
   "/reports/balance-payment": "balance-payment",
   "/reports/party-ledger": "party-ledger",
   "/report": "reports",
+  "/qr-scanner": "qr-scanner",
   "/settings": "settings"
 };
 
@@ -111,6 +114,7 @@ function AppShell({ user, onLogout }) {
       case "reports": return <ReportsPage />;
       case "balance-payment": return <BalancePaymentPage />;
       case "party-ledger": return <PartyLedgerPage />;
+      case "qr-scanner": return <QrScannerPage />;
       case "settings": return <SettingsPage />;
       case "dashboard":
       default: return <DashboardPage user={user} summary={summary} onNavigate={go} />;

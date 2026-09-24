@@ -11,12 +11,14 @@ import { fileURLToPath } from "node:url";
 import { configure, checkPNRStatus } from "railkit";
 import { z } from "zod";
 import { connectDB, isDbConnected } from "./db.js";
-import { Party, Ticket, Payment, PnrRecord, Settings, User } from "./models/index.js";
+import { Party, Ticket, Payment, PnrRecord, Settings, User, QrScan } from "./models/index.js";
 import {
   generateGoogleAuthUrl,
   handleGoogleCallback,
-  getGoogleStatus
+  getGoogleStatus,
+  uploadJpgImage
 } from "./services/index.js";
+import { parseQrData } from "./utils/qrParser.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,7 +35,8 @@ const memory = {
   pnrRecords: [],
   tickets: [],
   parties: [],
-  payments: []
+  payments: [],
+  qrScans: []
 };
 
 const authTokens = new Map();
@@ -665,6 +668,87 @@ app.post("/api/google/disconnect", requireAuth, async (_req, res) => {
     }
   }
   res.json({ ok: true, message: "Google account disconnected." });
+});
+
+// QR Code Scanner & Storage API
+app.post("/api/qr/save", requireAuth, async (req, res) => {
+  const { rawText, fileName, imageBase64 } = req.body || {};
+  if (!rawText || typeof rawText !== "string") {
+    return res.status(400).json({ message: "No QR code text provided." });
+  }
+
+  const { qrType, parsedData, pnr } = parseQrData(rawText);
+  const scanId = `QR-${Date.now()}`;
+  let driveFileId = "";
+  let driveViewLink = "";
+
+  if (imageBase64 && typeof imageBase64 === "string") {
+    try {
+      const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+      const buffer = Buffer.from(base64Data, "base64");
+      const driveUpload = await uploadJpgImage({
+        fileName: fileName || `${scanId}.jpg`,
+        fileBuffer: buffer,
+        mimeType: "image/jpeg"
+      });
+      if (driveUpload) {
+        driveFileId = driveUpload.id || "";
+        driveViewLink = driveUpload.webViewLink || driveUpload.webContentLink || "";
+      }
+    } catch (driveErr) {
+      console.warn("QR image Google Drive upload skipped/failed:", driveErr.message);
+    }
+  }
+
+  const record = {
+    id: scanId,
+    rawText,
+    qrType,
+    parsedData,
+    pnr,
+    fileName: fileName || "",
+    driveFileId,
+    driveViewLink,
+    scannedAt: new Date().toISOString()
+  };
+
+  if (isDbConnected()) {
+    try {
+      const doc = await QrScan.create(record);
+      return res.status(201).json({ success: true, scan: doc.toObject() });
+    } catch (dbErr) {
+      console.error("Save QR scan to DB error:", dbErr);
+    }
+  }
+
+  memory.qrScans.unshift(record);
+  res.status(201).json({ success: true, scan: record });
+});
+
+app.get("/api/qr/scans", requireAuth, async (_req, res) => {
+  if (isDbConnected()) {
+    try {
+      const scans = await QrScan.find().sort({ scannedAt: -1 }).limit(50).lean();
+      return res.json({ scans });
+    } catch (err) {
+      console.error("Get QR scans DB error:", err);
+    }
+  }
+  res.json({ scans: memory.qrScans });
+});
+
+app.delete("/api/qr/scans/:id", requireAuth, async (req, res) => {
+  if (isDbConnected()) {
+    try {
+      await QrScan.deleteOne({ id: req.params.id });
+      return res.json({ success: true, message: "Scan record deleted." });
+    } catch (err) {
+      console.error("Delete QR scan error:", err);
+    }
+  }
+  const idx = memory.qrScans.findIndex(s => s.id === req.params.id);
+  if (idx >= 0) memory.qrScans.splice(idx, 1);
+  res.json({ success: true, message: "Scan record deleted." });
 });
 
 // Serve static frontend build assets
