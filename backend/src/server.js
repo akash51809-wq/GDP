@@ -5,6 +5,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import session from "express-session";
+import bcrypt from "bcryptjs";
 import { configure, checkPNRStatus } from "railkit";
 import { z } from "zod";
 import { connectDB, isDbConnected } from "./db.js";
@@ -44,7 +45,7 @@ app.use(session({
   }
 }));
 
-const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: "draft-8", legacyHeaders: false });
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: "draft-8", legacyHeaders: false });
 const pnrLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: "draft-8", legacyHeaders: false });
 
 const loginSchema = z.object({ email: z.string().email().max(160), password: z.string().min(1).max(200) });
@@ -78,8 +79,9 @@ function requireAuth(req, res, next) {
     ? req.headers.authorization.slice(7).trim()
     : "";
   if (bearer && authTokens.has(bearer)) {
-    req.session.userId = "demo-admin";
-    req.session.userRole = "ADMIN";
+    const sessionUser = authTokens.get(bearer);
+    req.session.userId = sessionUser.userId;
+    req.session.userRole = sessionUser.role;
   }
   if (!req.session.userId) return res.status(401).json({ message: "Authentication required." });
   next();
@@ -95,21 +97,56 @@ app.get("/api/health", (_req, res) => res.json({
 app.post("/api/auth/login", loginLimiter, async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Invalid login details." });
-  const email = parsed.data.email.toLowerCase();
-  const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD || "AdminPassword123!";
+  const email = parsed.data.email.trim().toLowerCase();
+  const inputPassword = parsed.data.password;
 
-  if (!adminEmail || !adminPassword || email !== adminEmail || parsed.data.password !== adminPassword) {
+  let authenticatedUser = null;
+
+  // 1. Authenticate against MongoDB Atlas User collection
+  if (isDbConnected()) {
+    try {
+      const user = await User.findOne({ email }).lean();
+      if (user && user.passwordHash) {
+        const isMatch = await bcrypt.compare(inputPassword, user.passwordHash);
+        if (isMatch) {
+          authenticatedUser = {
+            id: user.id || "admin-1",
+            name: user.name || "Administrator",
+            email: user.email,
+            role: user.role || "ADMIN"
+          };
+        }
+      }
+    } catch (dbErr) {
+      console.error("Auth DB error:", dbErr);
+    }
+  }
+
+  // 2. Fallback to environment variables
+  if (!authenticatedUser) {
+    const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD || "AdminPassword123!";
+    if (email === adminEmail && inputPassword === adminPassword) {
+      authenticatedUser = {
+        id: "demo-admin",
+        name: "Administrator",
+        email: adminEmail,
+        role: "ADMIN"
+      };
+    }
+  }
+
+  if (!authenticatedUser) {
     return res.status(401).json({ message: "Email or password is incorrect." });
   }
 
   const token = crypto.randomBytes(32).toString("hex");
-  authTokens.set(token, { userId: "demo-admin", role: "ADMIN", createdAt: Date.now() });
-  req.session.userId = "demo-admin";
-  req.session.userRole = "ADMIN";
+  authTokens.set(token, { userId: authenticatedUser.id, role: authenticatedUser.role, createdAt: Date.now() });
+  req.session.userId = authenticatedUser.id;
+  req.session.userRole = authenticatedUser.role;
 
   const sendLogin = () => res.json({
-    user: { id: "demo-admin", name: "Administrator", email: adminEmail, role: "ADMIN" },
+    user: authenticatedUser,
     token
   });
   if (typeof req.session.save === "function") req.session.save(() => sendLogin());
@@ -124,17 +161,36 @@ app.post("/api/auth/logout", (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
 
-app.get("/api/auth/me", (req, res) => {
+app.get("/api/auth/me", async (req, res) => {
   const bearer = req.headers.authorization?.startsWith("Bearer ")
     ? req.headers.authorization.slice(7).trim()
     : "";
-  const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
-  if (bearer && authTokens.has(bearer)) {
-    return res.json({ user: { id: "demo-admin", name: "Administrator", email: adminEmail, role: "ADMIN", status: "ACTIVE" } });
+  const tokenData = bearer ? authTokens.get(bearer) : null;
+  const userId = tokenData?.userId || req.session.userId;
+
+  if (!userId) return res.status(401).json({ message: "Not authenticated." });
+
+  if (isDbConnected()) {
+    try {
+      const user = await User.findOne({ id: userId }).lean();
+      if (user) {
+        return res.json({
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            status: user.status
+          }
+        });
+      }
+    } catch (e) {
+      console.error("Auth me DB error:", e);
+    }
   }
-  if (!req.session.userId) return res.status(401).json({ message: "Not authenticated." });
-  if (req.session.userId !== "demo-admin") return res.status(401).json({ message: "Not authenticated." });
-  res.json({ user: { id: "demo-admin", name: "Administrator", email: adminEmail, role: "ADMIN", status: "ACTIVE" } });
+
+  const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
+  res.json({ user: { id: userId, name: "Administrator", email: adminEmail, role: "ADMIN", status: "ACTIVE" } });
 });
 
 app.get("/api/dashboard/summary", requireAuth, async (_req, res) => {
@@ -221,7 +277,7 @@ app.put("/api/parties/:id", requireAuth, async (req, res) => {
       const party = await Party.findOneAndUpdate(
         { id: req.params.id },
         { $set: parsed.data },
-        { new: true }
+        { returnDocument: "after" }
       ).lean();
       if (party) return res.json({ party });
       return res.status(404).json({ message: "Party not found." });
@@ -472,7 +528,7 @@ app.post("/api/pnr/fetch", requireAuth, pnrLimiter, async (req, res) => {
         const saved = await PnrRecord.findOneAndUpdate(
           { pnr: pnrData.pnr },
           { $set: pnrData, $setOnInsert: { id: `pnr-${Date.now()}` } },
-          { upsert: true, new: true }
+          { upsert: true, returnDocument: "after" }
         ).lean();
         return res.json({ message: "PNR details were fetched and saved in MongoDB.", record: saved });
       } catch (dbErr) {
@@ -526,7 +582,7 @@ app.put("/api/settings", requireAuth, async (req, res) => {
       const updated = await Settings.findOneAndUpdate(
         { key: "global" },
         { $set: req.body },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: "after" }
       ).lean();
       return res.json({ settings: updated, message: "Settings saved to database." });
     } catch (error) {
@@ -541,8 +597,32 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ message: "Something went wrong." });
 });
 
+async function ensureAdminUser() {
+  if (!isDbConnected()) return;
+  try {
+    const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD || "AdminPassword123!";
+    const existing = await User.findOne({ email: adminEmail });
+    if (!existing) {
+      const passwordHash = await bcrypt.hash(adminPassword, 10);
+      await User.create({
+        id: "admin-1",
+        name: "Administrator",
+        email: adminEmail,
+        passwordHash,
+        role: "ADMIN",
+        status: "ACTIVE"
+      });
+      console.log(`👤 Seeded admin user (${adminEmail}) in MongoDB Atlas.`);
+    }
+  } catch (err) {
+    console.error("Ensure admin user error:", err.message);
+  }
+}
+
 // Connect to MongoDB and start server
-connectDB().finally(() => {
+connectDB().finally(async () => {
+  await ensureAdminUser();
   app.listen(PORT, () => {
     console.log(`🚀 Railway Agent backend running on port ${PORT}`);
     console.log(`📦 MongoDB Status: ${isDbConnected() ? "Connected to Atlas" : "Disconnected (check network access / IP whitelist)"}`);
