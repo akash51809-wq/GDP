@@ -49,7 +49,7 @@ app.use(session({
   cookie: {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? "none" : "lax",
+    sameSite: "lax",
     maxAge: 1000 * 60 * 60 * 8
   }
 }));
@@ -158,8 +158,14 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
     user: authenticatedUser,
     token
   });
-  if (typeof req.session.save === "function") req.session.save(() => sendLogin());
-  else sendLogin();
+  if (typeof req.session.save === "function") {
+    req.session.save((err) => {
+      if (err) console.error("Session save error:", err);
+      sendLogin();
+    });
+  } else {
+    sendLogin();
+  }
 });
 
 app.post("/api/auth/logout", (req, res) => {
