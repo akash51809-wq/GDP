@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 import { Settings } from "../models/Settings.js";
 import { isDbConnected } from "../db.js";
+import { encrypt, decrypt } from "../utils/crypto.js";
 
 const SCOPES = [
   "https://www.googleapis.com/auth/drive.file",
@@ -43,11 +44,12 @@ export async function handleGoogleCallback(code) {
 
   if (tokens.refresh_token && isDbConnected()) {
     try {
+      const encryptedToken = encrypt(tokens.refresh_token);
       await Settings.findOneAndUpdate(
         { key: "global" },
         {
           $set: {
-            googleRefreshToken: tokens.refresh_token,
+            googleRefreshToken: encryptedToken,
             googleConnected: true,
             googleConnectedAt: new Date()
           }
@@ -72,7 +74,7 @@ export async function getAuthenticatedClient() {
     try {
       const settings = await Settings.findOne({ key: "global" }).lean();
       if (settings?.googleRefreshToken) {
-        refreshToken = settings.googleRefreshToken;
+        refreshToken = decrypt(settings.googleRefreshToken);
       }
     } catch (err) {
       console.error("Error retrieving Google refresh token:", err);

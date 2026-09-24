@@ -19,6 +19,7 @@ import {
   uploadJpgImage
 } from "./services/index.js";
 import { parseQrData } from "./utils/qrParser.js";
+import { encrypt, decrypt, maskSecret } from "./utils/crypto.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,13 +45,47 @@ const authTokens = new Map();
 if (process.env.RAILKIT_API_KEY) configure(process.env.RAILKIT_API_KEY);
 
 app.set("trust proxy", 1);
+app.disable("x-powered-by");
+
+// Enhanced HTTP security headers via Helmet
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
-  contentSecurityPolicy: false
+  contentSecurityPolicy: false,
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  xContentTypeOptions: true,
+  xFrameOptions: { action: "sameorigin" }
 }));
-app.use(cors({ origin: true, credentials: true }));
-app.use(express.json({ limit: "1mb" }));
+
+// Allowed origins whitelist for CORS & CSRF defense
+const allowedOrigins = [
+  FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://localhost:3001"
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".onrender.com") ||
+      origin.includes("localhost") ||
+      origin.includes("127.0.0.1")
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error("CORS policy violation: origin not allowed"));
+  },
+  credentials: true
+}));
+
+// Request body payload limit (6MB to handle QR images cleanly)
+app.use(express.json({ limit: "6mb" }));
+
+// Secure session configuration
 app.use(session({
+  name: "__gdp_sid",
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
@@ -62,8 +97,57 @@ app.use(session({
   }
 }));
 
-const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: "draft-8", legacyHeaders: false });
+// CSRF Defense-in-depth middleware for state-changing HTTP methods
+function csrfProtection(req, res, next) {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    return next();
+  }
+
+  // Exempt external OAuth callback
+  if (req.path === "/api/google/callback") {
+    return next();
+  }
+
+  const origin = req.headers.origin;
+  const referer = req.headers.referer;
+
+  if (origin) {
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".onrender.com") ||
+      origin.includes("localhost") ||
+      origin.includes("127.0.0.1");
+    if (!isAllowed) {
+      return res.status(403).json({ message: "CSRF check failed: Origin not permitted." });
+    }
+  } else if (referer) {
+    try {
+      const refUrl = new URL(referer);
+      const isAllowed =
+        allowedOrigins.includes(refUrl.origin) ||
+        refUrl.origin.endsWith(".onrender.com") ||
+        refUrl.origin.includes("localhost") ||
+        refUrl.origin.includes("127.0.0.1");
+      if (!isAllowed) {
+        return res.status(403).json({ message: "CSRF check failed: Referer not permitted." });
+      }
+    } catch {
+      return res.status(403).json({ message: "CSRF check failed: Malformed Referer." });
+    }
+  }
+
+  next();
+}
+
+app.use("/api", csrfProtection);
+
+// Rate limiters
+const generalApiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: "draft-8", legacyHeaders: false });
+const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: "draft-8", legacyHeaders: false });
 const pnrLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: "draft-8", legacyHeaders: false });
+const uploadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: "draft-8", legacyHeaders: false });
+
+app.use("/api/", generalApiLimiter);
 
 const loginSchema = z.object({ email: z.string().email().max(160), password: z.string().min(1).max(200) });
 const pnrSchema = z.object({ pnr: z.string().regex(/^\d{10}$/, "PNR must be exactly 10 digits.") });
@@ -585,6 +669,18 @@ app.get("/api/pnr/recent", requireAuth, async (_req, res) => {
   res.json({ records: memory.pnrRecords.slice(0, 20) });
 });
 
+// Sanitizer for Settings: strictly prevents leaking tokens or raw passwords to client
+function sanitizeSettings(settings) {
+  if (!settings) return {};
+  const s = { ...settings };
+  delete s.googleRefreshToken;
+  s.hasSmtpPassword = Boolean(s.smtpPassword);
+  s.smtpPassword = s.smtpPassword ? "••••••••" : "";
+  s.hasWhatsappToken = Boolean(s.whatsappToken);
+  s.whatsappToken = s.whatsappToken ? "••••••••" : "";
+  return s;
+}
+
 // Settings API
 app.get("/api/settings", requireAuth, async (_req, res) => {
   if (isDbConnected()) {
@@ -593,28 +689,82 @@ app.get("/api/settings", requireAuth, async (_req, res) => {
       if (!settings) {
         settings = (await Settings.create({ key: "global" })).toObject();
       }
-      return res.json({ settings });
+      return res.json({ settings: sanitizeSettings(settings) });
     } catch (error) {
       console.error("Fetch settings DB error:", error);
     }
   }
-  res.json({ settings: {} });
+  res.json({ settings: sanitizeSettings({}) });
 });
 
 app.put("/api/settings", requireAuth, async (req, res) => {
+  const payload = { ...req.body };
+  delete payload.googleRefreshToken; // Never allow client to manually modify OAuth token
+
+  // Encrypt secrets at rest with AES-256-GCM
+  if (payload.smtpPassword && payload.smtpPassword !== "••••••••") {
+    payload.smtpPassword = encrypt(payload.smtpPassword);
+  } else {
+    delete payload.smtpPassword; // Retain existing encrypted password
+  }
+
+  if (payload.whatsappToken && payload.whatsappToken !== "••••••••") {
+    payload.whatsappToken = encrypt(payload.whatsappToken);
+  } else {
+    delete payload.whatsappToken; // Retain existing encrypted token
+  }
+
   if (isDbConnected()) {
     try {
       const updated = await Settings.findOneAndUpdate(
         { key: "global" },
-        { $set: req.body },
+        { $set: payload },
         { upsert: true, returnDocument: "after" }
       ).lean();
-      return res.json({ settings: updated, message: "Settings saved to database." });
+      return res.json({ settings: sanitizeSettings(updated), message: "Settings saved securely to database." });
     } catch (error) {
       console.error("Save settings DB error:", error);
     }
   }
-  res.json({ settings: req.body, message: "Settings saved temporarily." });
+  res.json({ settings: sanitizeSettings(payload), message: "Settings saved temporarily." });
+});
+
+// User Password Update API
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8, "New password must be at least 8 characters long.")
+});
+
+app.post("/api/auth/change-password", requireAuth, async (req, res) => {
+  const parsed = changePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: parsed.error.issues[0]?.message || "Invalid input." });
+  }
+
+  const userId = req.session.userId;
+  if (!isDbConnected()) {
+    return res.status(503).json({ message: "Database offline. Password cannot be changed in temporary mode." });
+  }
+
+  try {
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const isMatch = await bcrypt.compare(parsed.data.currentPassword, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Current password is incorrect." });
+    }
+
+    user.passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
+    await user.save();
+
+    res.json({ success: true, message: "Password updated successfully." });
+  } catch (err) {
+    console.error("Change password error:", err);
+    res.status(500).json({ message: "Failed to update password." });
+  }
 });
 
 // Google Drive & Gmail API Integration
@@ -670,24 +820,38 @@ app.post("/api/google/disconnect", requireAuth, async (_req, res) => {
   res.json({ ok: true, message: "Google account disconnected." });
 });
 
-// QR Code Scanner & Storage API
-app.post("/api/qr/save", requireAuth, async (req, res) => {
+// QR Code Scanner & Storage API with payload limits and MIME sanitization
+app.post("/api/qr/save", requireAuth, uploadLimiter, async (req, res) => {
   const { rawText, fileName, imageBase64 } = req.body || {};
   if (!rawText || typeof rawText !== "string") {
     return res.status(400).json({ message: "No QR code text provided." });
   }
+  if (rawText.length > 5000) {
+    return res.status(400).json({ message: "QR payload exceeds maximum length limit." });
+  }
 
+  // Prevent path traversal on filename
+  const safeFileName = path.basename(fileName || `QR-${Date.now()}.jpg`).replace(/[^a-zA-Z0-9._-]/g, "_");
   const { qrType, parsedData, pnr } = parseQrData(rawText);
   const scanId = `QR-${Date.now()}`;
   let driveFileId = "";
   let driveViewLink = "";
 
   if (imageBase64 && typeof imageBase64 === "string") {
+    // Validate payload size (max 7MB base64 ~ 5MB decoded)
+    if (imageBase64.length > 7 * 1024 * 1024) {
+      return res.status(413).json({ message: "Image payload exceeds maximum allowed size (5MB)." });
+    }
+    // Strict MIME header check
+    if (!/^data:image\/(jpeg|jpg|png|webp);base64,/.test(imageBase64)) {
+      return res.status(400).json({ message: "Invalid image format. Only JPEG, PNG, and WebP are accepted." });
+    }
+
     try {
       const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
       const buffer = Buffer.from(base64Data, "base64");
       const driveUpload = await uploadJpgImage({
-        fileName: fileName || `${scanId}.jpg`,
+        fileName: safeFileName.endsWith(".jpg") || safeFileName.endsWith(".jpeg") ? safeFileName : `${safeFileName}.jpg`,
         fileBuffer: buffer,
         mimeType: "image/jpeg"
       });
@@ -706,7 +870,7 @@ app.post("/api/qr/save", requireAuth, async (req, res) => {
     qrType,
     parsedData,
     pnr,
-    fileName: fileName || "",
+    fileName: safeFileName,
     driveFileId,
     driveViewLink,
     scannedAt: new Date().toISOString()
@@ -764,9 +928,13 @@ app.use((req, res, next) => {
   next();
 });
 
+// Hardened error handler: never leak internal stack traces to the client
 app.use((err, _req, res, _next) => {
-  console.error(err);
-  res.status(500).json({ message: "Something went wrong." });
+  console.error("Unhandled error:", err?.message || err);
+  if (err?.message?.includes("CORS")) {
+    return res.status(403).json({ message: "Access forbidden by security policy." });
+  }
+  res.status(err?.status || 500).json({ message: "An unexpected error occurred. Please try again." });
 });
 
 async function ensureAdminUser() {
@@ -776,7 +944,7 @@ async function ensureAdminUser() {
     const adminPassword = process.env.ADMIN_PASSWORD || "AdminPassword123!";
     const existing = await User.findOne({ email: adminEmail });
     if (!existing) {
-      const passwordHash = await bcrypt.hash(adminPassword, 10);
+      const passwordHash = await bcrypt.hash(adminPassword, 12);
       await User.create({
         id: "admin-1",
         name: "Administrator",

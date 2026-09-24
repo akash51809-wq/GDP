@@ -16,7 +16,7 @@ async function seed() {
   const email = (process.env.ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD || "AdminPassword123!";
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  const passwordHash = await bcrypt.hash(password, 12);
 
   const admin = await User.findOneAndUpdate(
     { email },
@@ -35,7 +35,7 @@ async function seed() {
 
   console.log(`✅ Administrator account ready in MongoDB Atlas:`);
   console.log(`   Email:    ${email}`);
-  console.log(`   Password: ${password}`);
+  console.log(`   Status:   ACTIVE (Password configured via environment)`);
   console.log(`   User ID:  ${admin.id}`);
 
   await mongoose.disconnect();
