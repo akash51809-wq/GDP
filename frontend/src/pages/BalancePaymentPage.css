@@ -1,1 +1,40 @@
-.balance-payment-page{animation:balanceIn .3s ease both}.balance-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}.balance-refresh{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(56,189,248,.22);background:rgba(56,189,248,.08);color:#38bdf8;border-radius:10px;padding:8px 11px;font-size:11px;font-weight:800;cursor:pointer;box-shadow:0 5px 12px rgba(0,0,0,.12);transition:.2s}.balance-refresh:hover{transform:translateY(-2px)}.balance-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0 0 12px}.balance-stat{display:flex;align-items:center;gap:11px;background:rgba(13,26,43,.72);border:1px solid rgba(148,163,184,.12);border-radius:14px;padding:12px 14px;box-shadow:0 10px 24px rgba(0,0,0,.12)}.balance-stat-icon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center}.balance-stat-icon.blue{background:linear-gradient(145deg,#2563eb,#38bdf8);color:#fff}.balance-stat-icon.amber{background:linear-gradient(145deg,#d97706,#f59e0b);color:#fff}.balance-stat small{display:block;font-size:8px;letter-spacing:.08em;color:#94a3b8;font-weight:800}.balance-stat b{display:block;margin-top:3px;font-size:17px;color:#f8fafc}.balance-card{overflow:hidden;border:1px solid rgba(148,163,184,.12);background:rgba(13,26,43,.72);border-radius:16px;box-shadow:0 14px 32px rgba(0,0,0,.14)}.balance-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid rgba(148,163,184,.1)}.balance-search{height:34px;display:flex;align-items:center;gap:8px;max-width:440px;flex:1;padding:0 10px;border:1px solid rgba(148,163,184,.15);border-radius:9px;background:rgba(7,17,31,.65);color:#64748b}.balance-search input{width:100%;border:0;outline:0;background:transparent;color:#e2e8f0;font-size:11px}.balance-count{font-size:10px;color:#94a3b8;font-weight:800}.balance-table-wrap{overflow:auto}.balance-table{width:100%;border-collapse:collapse;min-width:760px}.balance-table th{text-align:left;padding:10px 12px;font-size:8px;letter-spacing:.08em;color:#64748b;background:rgba(7,17,31,.38);white-space:nowrap}.balance-table td{padding:11px 12px;border-top:1px solid rgba(148,163,184,.08);font-size:10px;color:#cbd5e1}.balance-table td b{display:block;color:#f1f5f9;font-size:11px}.balance-table td small{display:block;color:#64748b;font-size:8px;margin-top:2px}.balance-table tbody tr:hover{background:rgba(56,189,248,.035)}.amount-col{text-align:right!important}.amount-col strong{font-size:12px;color:#fbbf24}.balance-status{display:inline-flex;padding:4px 7px;border-radius:999px;font-size:8px;font-weight:900}.balance-status.active{color:#86efac;background:rgba(34,197,94,.1)}.balance-status.inactive{color:#fda4af;background:rgba(239,68,68,.1)}.empty-balance,.loading-balance{text-align:center!important;padding:42px!important;color:#64748b!important}.empty-balance svg{margin:0 auto 8px;display:block}.empty-balance b{display:block;color:#cbd5e1;font-size:11px}.empty-balance span{display:block;font-size:9px;margin-top:3px}.balance-error{margin:0 12px 10px;padding:9px;border-radius:9px;background:rgba(239,68,68,.08);color:#fca5a5;font-size:10px}.spin{animation:balanceSpin .8s linear infinite}@keyframes balanceIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes balanceSpin{to{transform:rotate(360deg)}}@media(max-width:700px){.balance-head{flex-direction:column}.balance-stats{grid-template-columns:1fr}}
+.balance-payment-page{animation:balanceIn .3s ease both}
+.balance-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px}
+.balance-refresh{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(56,189,248,.22);background:rgba(56,189,248,.08);color:#38bdf8;border-radius:10px;padding:10px 14px;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 5px 12px rgba(0,0,0,.12);transition:.2s}
+.balance-refresh:hover{transform:translateY(-2px);color:#fff;border-color:rgba(56,189,248,.4)}
+.balance-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0 0 14px}
+.balance-stat{display:flex;align-items:center;gap:12px;background:rgba(13,26,43,.72);border:1px solid rgba(148,163,184,.12);border-radius:14px;padding:14px 16px;box-shadow:0 10px 24px rgba(0,0,0,.12)}
+.balance-stat-icon{width:40px;height:40px;border-radius:10px;display:grid;place-items:center}
+.balance-stat-icon.blue{background:linear-gradient(145deg,#2563eb,#38bdf8);color:#fff}
+.balance-stat-icon.amber{background:linear-gradient(145deg,#d97706,#f59e0b);color:#fff}
+.balance-stat small{display:block;font-size:12px;letter-spacing:.08em;color:#94a3b8;font-weight:800;text-transform:uppercase}
+.balance-stat b{display:block;margin-top:3px;font-size:20px;font-weight:800;color:#f8fafc}
+.balance-card{overflow:hidden;border:1px solid rgba(148,163,184,.12);background:rgba(13,26,43,.72);border-radius:16px;box-shadow:0 14px 32px rgba(0,0,0,.14)}
+.balance-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border-bottom:1px solid rgba(148,163,184,.1)}
+.balance-search{height:42px;display:flex;align-items:center;gap:9px;max-width:440px;flex:1;padding:0 12px;border:1px solid rgba(148,163,184,.15);border-radius:10px;background:rgba(7,17,31,.65);color:#7e98b3}
+.balance-search input{width:100%;border:0;outline:0;background:transparent;color:#e2e8f0;font-size:14px;font-weight:600}
+.balance-count{font-size:13px;color:#cbd9e8;font-weight:800}
+.balance-table-wrap{overflow:auto}
+.balance-table{width:100%;border-collapse:collapse;min-width:780px}
+.balance-table th{text-align:left;padding:12px 14px;font-size:12px;font-weight:800;letter-spacing:.08em;color:#7c98b3;background:rgba(7,17,31,.38);white-space:nowrap;text-transform:uppercase}
+.balance-table td{padding:13px 14px;border-top:1px solid rgba(148,163,184,.08);font-size:14px;font-weight:600;color:#cbd5e1}
+.balance-table td b{display:block;color:#f1f5f9;font-size:15px;font-weight:800}
+.balance-table td small{display:block;color:#7e9bb9;font-size:12px;font-weight:600;margin-top:2px}
+.balance-table tbody tr:hover{background:rgba(56,189,248,.035)}
+.amount-col{text-align:right!important}
+.amount-col strong{font-size:15px;font-weight:800;color:#fbbf24}
+.balance-status{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800}
+.balance-status.active{color:#86efac;background:rgba(34,197,94,.1)}
+.balance-status.inactive{color:#fda4af;background:rgba(239,68,68,.1)}
+.empty-balance,.loading-balance{text-align:center!important;padding:45px!important;color:#7e9bb9!important}
+.empty-balance svg{margin:0 auto 8px;display:block}
+.empty-balance b{display:block;color:#cbd5e1;font-size:16px;font-weight:800}
+.empty-balance span{display:block;font-size:13px;font-weight:600;margin-top:4px}
+.balance-error{margin:0 14px 12px;padding:12px 14px;border-radius:10px;background:rgba(239,68,68,.08);color:#fca5a5;font-size:13px;font-weight:700}
+.spin{animation:balanceSpin .8s linear infinite}
+@keyframes balanceIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes balanceSpin{to{transform:rotate(360deg)}}
+@media(max-width:700px){
+  .balance-head{flex-direction:column}
+  .balance-stats{grid-template-columns:1fr}
+}
