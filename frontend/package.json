@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm install --prefix ../backend && vite build",
+    "start": "npm run start --prefix ../backend",
     "preview": "vite preview"
   },
   "dependencies": {
