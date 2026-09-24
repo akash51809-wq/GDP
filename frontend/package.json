@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm install --prefix ../backend && vite build",
+    "build": "npm install --prefix ../backend && npx vite build",
     "start": "npm run start --prefix ../backend",
     "preview": "vite preview"
   },
@@ -14,9 +14,7 @@
     "lucide-react": "^0.544.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "serve": "^14.2.5"
-  },
-  "devDependencies": {
+    "serve": "^14.2.5",
     "vite": "^7.1.5"
   }
 }
