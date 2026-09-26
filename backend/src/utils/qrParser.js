@@ -61,12 +61,12 @@ export function parseQrData(rawText = "") {
       parsedData: {
         pnr,
         trainNumber: trainMatch ? trainMatch[1] : null,
-        trainName: extractField(text, [/train\\s*name\\s*[:=-]\\s*([^\\n|;,]+)/i]),
+        trainName: extractField(text, [/train\s*name\s*[:=-]\s*([^\n|;,]+)/i]),
         journeyDate: dateMatch ? dateMatch[1] : null,
-        fromStation: extractField(text, [/(?:from|source|boarding)\\s*[:=-]\\s*([^\\n|;,]+?)(?:\\s+to\\s+|\\s+->\\s+|\\s+→\\s+)/i]),
-        toStation: extractField(text, [/(?:to|destination)\\s*[:=-]\\s*([^\\n|;,]+)/i]),
-        travelClass: extractField(text, [/(?:class|travel\\s*class)\\s*[:=-]\\s*([A-Z0-9 -]{1,20})/i]),
-        passengerCount: extractNumber(text, [/(?:passengers?|pax|adult(?:s)?)\\s*[:=-]\\s*(\\d{1,2})/i]),
+        fromStation: extractField(text, [/(?:from|source|boarding)\s*[:=-]\s*([^\n|;,]+?)(?:\s+to\s+|\s+->\s+|\s+→\s+)/i]),
+        toStation: extractField(text, [/(?:to|destination)\s*[:=-]\s*([^\n|;,]+)/i]),
+        travelClass: extractField(text, [/(?:class|travel\s*class)\s*[:=-]\s*([A-Z0-9 -]{1,20})/i]),
+        passengerCount: extractNumber(text, [/(?:passengers?|pax|adult(?:s)?)\s*[:=-]\s*(\\d{1,2})/i]),
         detailsText: text
       },
       pnr
