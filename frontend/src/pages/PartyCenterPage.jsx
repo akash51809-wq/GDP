@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   Users, Search, X, SlidersHorizontal, ArrowDownAZ, Download, MoreHorizontal,
-  Pencil, Eye, UserPlus, Mail, MessageCircle, CheckCircle2, XCircle,
+  Pencil, Eye, UserPlus, Mail, MessageCircle, CheckCircle2, XCircle, Trash2,
   ChevronLeft, ChevronRight, RefreshCw, IndianRupee
 } from "lucide-react";
 import "./PartyCenterPage.css";
@@ -59,6 +59,26 @@ export default function PartyCenterPage() {
   function changeSearch(value) {
     setSearch(value);
     setPageNo(1);
+  }
+
+  async function deleteParty(party) {
+    const confirmed = window.confirm(`Delete "${party.customerName}" permanently from the database?`);
+    if (!confirmed) return;
+
+    setNotice("");
+    try {
+      const res = await fetch(API + "/api/parties/" + encodeURIComponent(party.id), {
+        method: "DELETE",
+        credentials: "include"
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Could not delete party.");
+
+      setParties(prev => prev.filter(item => item.id !== party.id));
+      setNotice(data.message || "Party deleted successfully.");
+    } catch (err) {
+      setNotice(err.message);
+    }
   }
 
   function exportCsv() {
@@ -135,7 +155,7 @@ export default function PartyCenterPage() {
               <div className="party-contact"><Mail size={13}/><span title={p.email}>{p.email || "—"}</span></div>
               <div className="party-address" title={p.address}>{p.address || "—"}{p.city ? ", " + p.city : ""}</div>
               <div><span className={"party-status " + String(p.status || "").toLowerCase()}>{p.status === "ACTIVE" ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} {p.status}</span></div>
-              <div className="party-actions"><button title="View"><Eye size={14}/></button><button title="Edit"><Pencil size={14}/></button><button title="More"><MoreHorizontal size={15}/></button></div>
+              <div className="party-actions"><button title="View"><Eye size={14}/></button><button title="Edit"><Pencil size={14}/></button><button title="More"><MoreHorizontal size={15}/></button><button title="Delete customer" onClick={() => deleteParty(p)}><Trash2 size={14}/></button></div>
               <div className={"party-balance " + (Number(p.balance || 0) > 0 ? "due" : Number(p.balance || 0) < 0 ? "advance" : "")}>₹{Number(p.balance || 0).toLocaleString("en-IN", {minimumFractionDigits:2})}</div>
             </div>
            ))}
