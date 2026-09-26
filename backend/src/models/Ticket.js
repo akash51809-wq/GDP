@@ -8,6 +8,10 @@ const ticketSchema = new mongoose.Schema(
     bookingDate: { type: String, required: true },
     pnr: { type: String, required: true },
     amount: { type: Number, default: 0 },
+    qrScanId: { type: String, default: "", index: true },
+    qrRawText: { type: String, default: "" },
+    qrType: { type: String, default: "" },
+    qrParsedData: { type: mongoose.Schema.Types.Mixed, default: {} },
     status: { type: String, default: "BOOKED" }
   },
   { timestamps: true }
