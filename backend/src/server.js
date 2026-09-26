@@ -348,7 +348,7 @@ app.post("/api/parties", requireAuth, async (req, res) => {
 
   const normalizedParty = {
     ...parsed.data,
-    whatsapp: parsed.data.whatsapp ? parsed.data.whatsapp.replace(/\\D/g, "") : "",
+    whatsapp: parsed.data.whatsapp ? parsed.data.whatsapp.replace(/\D/g, "") : "",
     email: parsed.data.email ? parsed.data.email.trim().toLowerCase() : ""
   };
   const duplicateMessage = "This WhatsApp number or email is already registered.";
@@ -414,7 +414,7 @@ app.put("/api/parties/:id", requireAuth, async (req, res) => {
   const normalizedParty = {
     ...parsed.data,
     ...(Object.prototype.hasOwnProperty.call(parsed.data, "whatsapp")
-      ? { whatsapp: parsed.data.whatsapp ? parsed.data.whatsapp.replace(/\\D/g, "") : "" }
+      ? { whatsapp: parsed.data.whatsapp ? parsed.data.whatsapp.replace(/\D/g, "") : "" }
       : {}),
     ...(Object.prototype.hasOwnProperty.call(parsed.data, "email")
       ? { email: parsed.data.email ? parsed.data.email.trim().toLowerCase() : "" }
