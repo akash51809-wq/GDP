@@ -346,15 +346,45 @@ app.post("/api/parties", requireAuth, async (req, res) => {
   const parsed = partySchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Please provide a valid customer name and party details." });
 
+  const normalizedParty = {
+    ...parsed.data,
+    whatsapp: parsed.data.whatsapp ? parsed.data.whatsapp.replace(/\\D/g, "") : "",
+    email: parsed.data.email ? parsed.data.email.trim().toLowerCase() : ""
+  };
+  const duplicateMessage = "This WhatsApp number or email is already registered.";
+
+  if (isDbConnected()) {
+    try {
+      const duplicateOr = [];
+      if (normalizedParty.whatsapp) duplicateOr.push({ whatsapp: normalizedParty.whatsapp });
+      if (normalizedParty.email) duplicateOr.push({ email: normalizedParty.email });
+      if (duplicateOr.length) {
+        const existing = await Party.findOne({ $or: duplicateOr }).select("id").lean();
+        if (existing) return res.status(409).json({ message: duplicateMessage });
+      }
+    } catch (error) {
+      console.error("Check duplicate party DB error:", error);
+      return res.status(500).json({ message: "Could not verify duplicate party details." });
+    }
+  } else {
+    const duplicate = memory.parties.find(p =>
+      (normalizedParty.whatsapp && p.whatsapp === normalizedParty.whatsapp) ||
+      (normalizedParty.email && p.email === normalizedParty.email)
+    );
+    if (duplicate) return res.status(409).json({ message: duplicateMessage });
+  }
+
   const now = new Date().toISOString();
-  const partyData = { id: `PTY-${Date.now()}`, ...parsed.data, createdAt: now, updatedAt: now };
+  const partyData = { id: `PTY-${Date.now()}`, ...normalizedParty, createdAt: now, updatedAt: now };
 
   if (isDbConnected()) {
     try {
       const doc = await Party.create(partyData);
       return res.status(201).json({ party: doc.toObject() });
     } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: duplicateMessage });
       console.error("Save party DB error:", error);
+      return res.status(500).json({ message: "Could not create party. Please try again." });
     }
   }
 
@@ -381,23 +411,57 @@ app.put("/api/parties/:id", requireAuth, async (req, res) => {
   const parsed = partySchema.partial().safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Invalid party details." });
 
+  const normalizedParty = {
+    ...parsed.data,
+    ...(Object.prototype.hasOwnProperty.call(parsed.data, "whatsapp")
+      ? { whatsapp: parsed.data.whatsapp ? parsed.data.whatsapp.replace(/\\D/g, "") : "" }
+      : {}),
+    ...(Object.prototype.hasOwnProperty.call(parsed.data, "email")
+      ? { email: parsed.data.email ? parsed.data.email.trim().toLowerCase() : "" }
+      : {})
+  };
+  const duplicateMessage = "This WhatsApp number or email is already registered.";
+
   if (isDbConnected()) {
     try {
+      const current = await Party.findOne({ id: req.params.id }).select("id").lean();
+      if (!current) return res.status(404).json({ message: "Party not found." });
+
+      const duplicateOr = [];
+      if (normalizedParty.whatsapp) duplicateOr.push({ whatsapp: normalizedParty.whatsapp });
+      if (normalizedParty.email) duplicateOr.push({ email: normalizedParty.email });
+      if (duplicateOr.length) {
+        const existing = await Party.findOne({
+          $and: [{ id: { $ne: req.params.id } }, { $or: duplicateOr }]
+        }).select("id").lean();
+        if (existing) return res.status(409).json({ message: duplicateMessage });
+      }
+
       const party = await Party.findOneAndUpdate(
         { id: req.params.id },
-        { $set: parsed.data },
+        { $set: normalizedParty },
         { returnDocument: "after" }
       ).lean();
       if (party) return res.json({ party });
       return res.status(404).json({ message: "Party not found." });
     } catch (error) {
+      if (error?.code === 11000) return res.status(409).json({ message: duplicateMessage });
       console.error("Update party DB error:", error);
+      return res.status(500).json({ message: "Could not update party. Please try again." });
     }
   }
 
   const index = memory.parties.findIndex(item => item.id === req.params.id);
   if (index < 0) return res.status(404).json({ message: "Party not found." });
-  memory.parties[index] = { ...memory.parties[index], ...parsed.data, updatedAt: new Date().toISOString() };
+
+  const duplicate = memory.parties.find((item, i) =>
+    i !== index &&
+    ((normalizedParty.whatsapp && item.whatsapp === normalizedParty.whatsapp) ||
+      (normalizedParty.email && item.email === normalizedParty.email))
+  );
+  if (duplicate) return res.status(409).json({ message: duplicateMessage });
+
+  memory.parties[index] = { ...memory.parties[index], ...normalizedParty, updatedAt: new Date().toISOString() };
   res.json({ party: memory.parties[index] });
 });
 
