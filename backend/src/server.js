@@ -392,6 +392,47 @@ app.post("/api/parties", requireAuth, async (req, res) => {
   res.status(201).json({ party: partyData });
 });
 
+app.delete("/api/parties/:id", requireAuth, async (req, res) => {
+  if (isDbConnected()) {
+    try {
+      const party = await Party.findOne({ id: req.params.id }).select("id").lean();
+      if (!party) return res.status(404).json({ message: "Party not found." });
+
+      const [ticketCount, pnrCount] = await Promise.all([
+        Ticket.countDocuments({ partyId: req.params.id }),
+        PnrRecord.countDocuments({ partyId: req.params.id })
+      ]);
+
+      if (ticketCount > 0 || pnrCount > 0) {
+        return res.status(409).json({
+          message: "This party cannot be deleted because transaction or PNR records are linked to it."
+        });
+      }
+
+      await Party.deleteOne({ id: req.params.id });
+      return res.json({ success: true, message: "Party deleted successfully." });
+    } catch (error) {
+      console.error("Delete party DB error:", error);
+      return res.status(500).json({ message: "Could not delete party. Please try again." });
+    }
+  }
+
+  const index = memory.parties.findIndex(item => item.id === req.params.id);
+  if (index < 0) return res.status(404).json({ message: "Party not found." });
+
+  const hasLinkedRecords =
+    memory.tickets.some(t => t.partyId === req.params.id) ||
+    false;
+  if (hasLinkedRecords) {
+    return res.status(409).json({
+      message: "This party cannot be deleted because transaction or PNR records are linked to it."
+    });
+  }
+
+  memory.parties.splice(index, 1);
+  res.json({ success: true, message: "Party deleted successfully." });
+});
+
 app.get("/api/parties/:id", requireAuth, async (req, res) => {
   if (isDbConnected()) {
     try {
