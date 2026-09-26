@@ -172,7 +172,11 @@ const ticketSchema = z.object({
   partyName: z.string().min(2).max(120),
   bookingDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   pnr: z.string().min(1).max(30),
-  amount: z.coerce.number().finite().min(0)
+  amount: z.coerce.number().finite().min(0),
+  qrScanId: z.string().max(100).optional().default(""),
+  qrRawText: z.string().max(5000).optional().default(""),
+  qrType: z.string().max(40).optional().default(""),
+  qrParsedData: z.any().optional().default({})
 });
 
 function requireAuth(req, res, next) {
@@ -679,6 +683,10 @@ app.post("/api/tickets", requireAuth, async (req, res) => {
     bookingDate: parsed.data.bookingDate,
     pnr: parsed.data.pnr,
     amount: parsed.data.amount,
+    qrScanId: parsed.data.qrScanId,
+    qrRawText: parsed.data.qrRawText,
+    qrType: parsed.data.qrType,
+    qrParsedData: parsed.data.qrParsedData,
     createdAt: now,
     updatedAt: now,
     status: "BOOKED"
