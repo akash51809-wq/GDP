@@ -72,6 +72,10 @@ class Query {
     return this;
   }
 
+  lean() {
+    return this;
+  }
+
   sort(sortSpec = {}) {
     const entries = Object.entries(sortSpec);
     if (entries.length) {
