@@ -217,3 +217,5 @@ label{font-size:14px;font-weight:800 !important}
 th{font-size:13px !important;font-weight:900 !important}td{font-size:14px !important;font-weight:700 !important}
 small{font-weight:700}
 @media(max-width:650px){.content{padding:16px}.topbar{height:68px}.welcome h1,.page-hero h1,.module-page-header h1{font-size:28px}}
+
+.nav-group{width:100%}.nav-group>.nav-item{position:relative}.nav-chevron{margin-left:auto;font-size:13px;opacity:.7}.nav-submenu{margin:2px 0 6px 34px;padding-left:8px;border-left:1px solid rgba(148,163,184,.16)}.nav-subitem{display:block;width:calc(100% - 6px);padding:8px 10px;border:0;border-radius:8px;background:transparent;color:#8fa6bc;text-align:left;font-size:13px;font-weight:800;cursor:pointer}.nav-subitem:hover,.nav-subitem.active{background:rgba(255,255,255,.06);color:#fff}@media(max-width:650px){.nav-submenu{margin-left:30px}}
