@@ -985,7 +985,7 @@ app.get("/api/google/status", requireAuth, async (_req, res) => {
   }
 });
 
-app.get("/api/google/auth-url", requireAuth, (_req, res) => {
+app.get("/api/google/auth-url", requireAuth, (req, res) => {
   try {
     const state = crypto.randomBytes(32).toString("hex");
     req.session.googleOAuthState = state;
