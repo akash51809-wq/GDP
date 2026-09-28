@@ -68,7 +68,7 @@ export default function SettingsPage() {
 
   const change = (key, value) => setForm(p => ({ ...p, [key]: value }));
 
-  // Load live settings from MongoDB Atlas via protected backend API
+  // Load live settings from PostgreSQL via protected backend API
   useEffect(() => {
     async function loadSettings() {
       try {
@@ -364,7 +364,7 @@ export default function SettingsPage() {
           </div>
           <div className="settings-panel-foot">
             <span className="field-note">
-              Passwords and tokens are encrypted before being written to MongoDB Atlas.
+              Passwords and tokens are encrypted before being written to PostgreSQL.
             </span>
             <button className="save-btn email-save" disabled={loading} onClick={() => save("Email SMTP")}>
               <Save size={13} /> {loading ? "Saving..." : "Save Email"}
@@ -425,7 +425,7 @@ export default function SettingsPage() {
                   {googleStatus.connected ? "Authorized Account Active" : "No Active Google Account"}
                 </b>
                 <p style={{ color: "#64748b", fontSize: "13px", margin: "2px 0 0" }}>
-                  Tokens are stored encrypted with AES-256-GCM in MongoDB Atlas. Client secrets are never sent to the browser.
+                  Tokens are stored encrypted with AES-256-GCM in PostgreSQL. Client secrets are never sent to the browser.
                 </p>
               </div>
 
@@ -588,7 +588,7 @@ export default function SettingsPage() {
           </div>
           <div className="settings-panel-foot">
             <span className="field-note">
-              {saved ? saved + " settings saved." : "Settings are synced directly to MongoDB Atlas."}
+              {saved ? saved + " settings saved." : "Settings are synced directly to PostgreSQL."}
             </span>
             <button className="save-btn general-save" disabled={loading} onClick={() => save("General")}>
               <Save size={13} /> {loading ? "Saving..." : "Save General"}
