@@ -82,7 +82,12 @@ const allowedOrigins = [
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+
+    // Always allow the deployed app to call its own API/assets on the same origin.
+    const requestOrigin = `${process.env.NODE_ENV === "production" ? "https" : "http"}://${process.env.RENDER_EXTERNAL_HOSTNAME || ""}`;
+    const sameOrigin = requestOrigin !== "https://" && origin === requestOrigin;
+
+    if (allowedOrigins.includes(origin) || sameOrigin) {
       return callback(null, true);
     }
     return callback(new Error("CORS policy violation: origin not allowed"));
