@@ -127,8 +127,10 @@ function csrfProtection(req, res, next) {
   const referer = req.headers.referer;
 
   if (origin) {
+    const requestOrigin = `${process.env.NODE_ENV === "production" ? "https" : "http"}://${process.env.RENDER_EXTERNAL_HOSTNAME || ""}`;
+    const sameOrigin = requestOrigin !== "https://" && origin === requestOrigin;
     const isAllowed =
-      allowedOrigins.includes(origin);
+      allowedOrigins.includes(origin) || sameOrigin;
     if (!isAllowed) {
       return res.status(403).json({ message: "CSRF check failed: Origin not permitted." });
     }
