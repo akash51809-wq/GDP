@@ -12,7 +12,7 @@
 .receive-form-title b{display:block;color:#dcecff;font-size:16px;font-weight:800}
 .receive-form-title small{color:#7e9bb9;font-size:12px;font-weight:600}
 .receive-form-title>button{margin-left:auto;border:0;background:transparent;color:#85a0ba;cursor:pointer}
-.receive-fields{display:grid;grid-template-columns:1.5fr .7fr .7fr;gap:12px}
+.receive-fields{display:grid;grid-template-columns:1.35fr .65fr .65fr 1.45fr;gap:12px}
 .receive-fields label,.receive-party-field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .receive-fields label>span,.receive-party-field>label{display:flex;align-items:center;gap:6px;color:#9cb0c6;font-size:13px;font-weight:800}
 .receive-party-input,.receive-fields label>input,.receive-amount{height:42px;box-sizing:border-box;border:1px solid rgba(255,255,255,.065);border-radius:9px;background:#091827;color:#e5f1fc;display:flex;align-items:center;padding:0 12px;font-size:14px;font-weight:600}
@@ -57,3 +57,18 @@
   .receive-table{overflow:auto}
   .receive-head,.receive-row{width:100%}
 }
+.receive-slip-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.receive-slip-field>label{display:flex;flex-direction:column;gap:6px}
+.receive-slip-field>label>span{display:flex;align-items:center;gap:6px;color:#9cb0c6;font-size:13px;font-weight:800}
+.receive-slip-field em{font-style:normal;color:#6f8aa5;font-size:11px;font-weight:700}
+.receive-slip-drop{min-height:42px;box-sizing:border-box;border:1px dashed rgba(56,189,248,.22);border-radius:9px;background:#091827;color:#8da6bd;display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;transition:.18s}
+.receive-slip-drop:hover{border-color:rgba(56,189,248,.5);background:#0b1c2d}
+.receive-slip-drop>svg{color:#58c7f5;flex:0 0 auto}
+.receive-slip-drop>div{min-width:0;flex:1}
+.receive-slip-drop b{display:block;color:#dcecff;font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.receive-slip-drop small{display:block;color:#718ba5;font-size:10px;font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.receive-slip-drop.has-file{border-style:solid;border-color:rgba(34,197,94,.25);background:rgba(34,197,94,.045)}
+.receive-slip-drop.has-file>svg{color:#62db8e}
+.receive-slip-drop>button{border:0;background:transparent;color:#9ab0c4;cursor:pointer;padding:4px}
+@media(max-width:1000px){.receive-fields{grid-template-columns:1fr 1fr}.receive-slip-field{grid-column:1 / -1}}
+@media(max-width:800px){.receive-fields{grid-template-columns:1fr}.receive-slip-field{grid-column:auto}}
