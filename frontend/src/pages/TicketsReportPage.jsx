@@ -25,7 +25,6 @@ export default function TicketsReportPage() {
   }, []);
 
   async function load() {
-    if (!partyId && !date) return;
     setLoading(true);
     try {
       const qs = new URLSearchParams();
@@ -85,7 +84,7 @@ export default function TicketsReportPage() {
           </select>
         </div>
         <label>DATE<input type="date" value={date} onChange={e => setDate(e.target.value)} /></label>
-        <button className="tickets-load-btn" onClick={load} disabled={loading || (!partyId && !date)}><RefreshCw size={14}/>{loading ? "Loading..." : "Show Tickets"}</button>
+        <button className="tickets-load-btn" onClick={load} disabled={loading}><RefreshCw size={14}/>{loading ? "Loading..." : "Show Tickets"}</button>
       </section>
 
       <section className="tickets-report-card">
@@ -94,7 +93,7 @@ export default function TicketsReportPage() {
           <table className="tickets-report-table">
             <thead><tr><th>#</th><th>Date</th><th>Party</th><th>PNR</th><th>Ticket Details</th><th>Amount</th><th>Actions</th></tr></thead>
             <tbody>
-              {!tickets.length ? <tr><td colSpan="7" className="tickets-empty">Choose party/date and click Show Tickets.</td></tr> :
+              {!tickets.length ? <tr><td colSpan="7" className="tickets-empty">Click Show Tickets to load booked tickets.</td></tr> :
                 tickets.map((t, i) => {
                   const q = t.qrParsedData || {};
                   return <tr key={t.id}>
