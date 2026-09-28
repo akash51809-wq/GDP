@@ -8,10 +8,14 @@ import crypto from "node:crypto";
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12; // 96 bits recommended for GCM
 const SALT = "gdp-secure-storage-salt-v1";
+if (process.env.NODE_ENV === "production" && (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length < 32)) {
+  throw new Error("ENCRYPTION_KEY must be configured with at least 32 characters in production.");
+}
 
 // Derive 32-byte key from ENCRYPTION_KEY or SESSION_SECRET or fallback
 function getEncryptionKey() {
-  const secret = process.env.ENCRYPTION_KEY || process.env.SESSION_SECRET || "gdp-fallback-secret-key-32-chars-long";
+  const secret = process.env.ENCRYPTION_KEY || process.env.SESSION_SECRET;
+  if (!secret) throw new Error("Encryption secret is not configured.");
   return crypto.scryptSync(secret, SALT, 32);
 }
 
