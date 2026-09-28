@@ -76,9 +76,7 @@ app.use(helmet({
 // Allowed origins whitelist for CORS & CSRF defense
 const allowedOrigins = [
   FRONTEND_URL,
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "http://localhost:3001"
+  ...(isProduction ? [] : ["http://localhost:5173", "http://localhost:3000", "http://localhost:3001"])
 ].filter(Boolean);
 
 app.use(cors({
