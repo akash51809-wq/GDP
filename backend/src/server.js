@@ -35,6 +35,9 @@ const SESSION_SECRET = process.env.SESSION_SECRET;
 if (isProduction && (!SESSION_SECRET || SESSION_SECRET.length < 32)) {
   throw new Error("SESSION_SECRET must be set to a strong value (32+ characters) in production.");
 }
+if (isProduction && (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length < 32)) {
+  throw new Error("ENCRYPTION_KEY must be set to a strong value (32+ characters) in production.");
+}
 
 // In-memory fallback if PostgreSQL connection is unavailable
 const memory = {
@@ -146,6 +149,7 @@ const generalApiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, stan
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: "draft-8", legacyHeaders: false });
 const pnrLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: "draft-8", legacyHeaders: false });
 const uploadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: "draft-8", legacyHeaders: false });
+const passwordLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 5, standardHeaders: "draft-8", legacyHeaders: false });
 
 app.use("/api/", generalApiLimiter);
 
@@ -836,10 +840,10 @@ app.put("/api/settings", requireAuth, async (req, res) => {
 // User Password Update API
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: z.string().min(8, "New password must be at least 8 characters long.")
+  newPassword: z.string().min(12, "New password must be at least 12 characters long.").max(200)
 });
 
-app.post("/api/auth/change-password", requireAuth, async (req, res) => {
+app.post("/api/auth/change-password", requireAuth, passwordLimiter, async (req, res) => {
   const parsed = changePasswordSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ message: parsed.error.issues[0]?.message || "Invalid input." });
@@ -861,8 +865,12 @@ app.post("/api/auth/change-password", requireAuth, async (req, res) => {
       return res.status(401).json({ message: "Current password is incorrect." });
     }
 
-    user.passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
-    await user.save();
+    const passwordHash = await bcrypt.hash(parsed.data.newPassword, 12);
+    await User.findOneAndUpdate({ id: userId }, { $set: { passwordHash } }, { returnDocument: "after" });
+    for (const [token, data] of authTokens.entries()) {
+      if (data.userId === userId) authTokens.delete(token);
+    }
+    req.session.destroy(() => {});
 
     res.json({ success: true, message: "Password updated successfully." });
   } catch (err) {
@@ -883,7 +891,9 @@ app.get("/api/google/status", requireAuth, async (_req, res) => {
 
 app.get("/api/google/auth-url", requireAuth, (_req, res) => {
   try {
-    const url = generateGoogleAuthUrl();
+    const state = crypto.randomBytes(32).toString("hex");
+    req.session.googleOAuthState = state;
+    const url = generateGoogleAuthUrl(state);
     res.json({ url });
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -891,7 +901,12 @@ app.get("/api/google/auth-url", requireAuth, (_req, res) => {
 });
 
 app.get("/api/google/callback", async (req, res) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
+  const expectedState = req.session.googleOAuthState;
+  delete req.session.googleOAuthState;
+  if (!state || !expectedState || typeof state !== "string" || typeof expectedState !== "string" || state.length !== expectedState.length || !crypto.timingSafeEqual(Buffer.from(state), Buffer.from(expectedState))) {
+    return res.status(403).send("Google authorization state validation failed.");
+  }
   if (!code) {
     return res.status(400).send("Authorization code missing.");
   }
@@ -900,7 +915,7 @@ app.get("/api/google/callback", async (req, res) => {
     res.redirect("/settings?google=connected");
   } catch (err) {
     console.error("Google OAuth callback error:", err);
-    res.status(500).send("Failed to authorize Google account: " + err.message);
+    res.status(500).send("Failed to authorize Google account.");
   }
 });
 
