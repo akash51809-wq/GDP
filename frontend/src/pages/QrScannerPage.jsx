@@ -253,7 +253,7 @@ export default function QrScannerPage() {
           </h1>
           <p>
             Upload any QR code image (IRCTC ticket, payment UPI, or receipt) to automatically decode,
-            extract railway data, and store in MongoDB.
+            extract railway data, and store in PostgreSQL.
           </p>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>
@@ -367,7 +367,7 @@ export default function QrScannerPage() {
             </h2>
             {decodedResult && (
               <span className="qr-saved-tag">
-                <CheckCircle2 size={13} /> Stored in MongoDB
+                <CheckCircle2 size={13} /> Stored in PostgreSQL
               </span>
             )}
           </div>
@@ -493,7 +493,7 @@ export default function QrScannerPage() {
               Scanned QR Code History
             </h2>
             <small style={{ color: "#64748b" }}>
-              All records stored permanently in your MongoDB database
+              All records stored permanently in your PostgreSQL database
             </small>
           </div>
           <span style={{ fontSize: "0.82rem", color: "#94a3b8" }}>
