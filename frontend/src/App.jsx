@@ -141,7 +141,7 @@ function AppShell({ user, onLogout }) {
           {menu.map(([Icon, label, key, path]) => (
             <div key={key} className={key === "reports" ? "nav-group" : ""}>
               <button
-                onClick={() => key === "reports" ? (setReportsOpen(v => !v), go(path)) : go(path)}
+                onClick={() => key === "reports" ? setReportsOpen(v => !v) : go(path)}
                 className={"nav-item " + (page === key || (key === "reports" && (page === "party-ledger" || page === "tickets-report" || page === "payments-report" || page === "outstanding-report")) ? "active" : "")}
               >
                 <Icon size={19} />{open && <><span>{label}</span>{key === "reports" && <span className="nav-chevron">{reportsOpen ? "⌃" : "⌄"}</span>}</>}
