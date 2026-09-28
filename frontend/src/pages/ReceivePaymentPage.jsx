@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { WalletCards, Plus, Search, CalendarDays, IndianRupee, UserRound, X, Save, ArrowLeft, RefreshCw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { WalletCards, Plus, Search, CalendarDays, IndianRupee, UserRound, X, Save, RefreshCw, Upload, FileImage } from "lucide-react";
 import "./ReceivePaymentPage.css";
 import { API } from "../apiConfig";
 const today = () => new Date().toISOString().slice(0, 10);
@@ -14,7 +14,9 @@ export default function ReceivePaymentPage() {
   const [party, setParty] = useState(null);
   const [date, setDate] = useState(today());
   const [amount, setAmount] = useState("");
+  const [attachment, setAttachment] = useState(null);
   const [loading, setLoading] = useState(true);
+  const fileInputRef = useRef(null);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
 
@@ -39,20 +41,50 @@ export default function ReceivePaymentPage() {
   }).slice(0, 8);
 
   function openAdd() {
-    setParty(null); setSearch(""); setDate(today()); setAmount(""); setNotice(""); setShowAdd(true);
+    setParty(null); setSearch(""); setDate(today()); setAmount(""); setAttachment(null); setNotice(""); setShowAdd(true);
   }
-  function save(e) {
+  async function save(e) {
     e.preventDefault();
     if (!party) return setNotice("Please choose a party.");
     if (!amount || Number(amount) <= 0) return setNotice("Please enter a valid amount.");
+
     setSaving(true); setNotice("");
-    fetch(API + "/api/payments/received", {
-      method:"POST", credentials:"include", headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ partyId:party.id, partyName:party.customerName, date, amount:Number(amount) })
-    }).then(async r => {
-      const d=await r.json(); if(!r.ok) throw new Error(d.message || "Could not save payment.");
-      setShowAdd(false); setAmount(""); await load();
-    }).catch(e=>setNotice(e.message)).finally(()=>setSaving(false));
+    try {
+      let attachmentData = "";
+      if (attachment) {
+        attachmentData = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result || ""));
+          reader.onerror = () => reject(new Error("Could not read the payment slip."));
+          reader.readAsDataURL(attachment);
+        });
+      }
+
+      const res = await fetch(API + "/api/payments/received", {
+        method:"POST",
+        credentials:"include",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          partyId:party.id,
+          partyName:party.customerName,
+          date,
+          amount:Number(amount),
+          attachmentData,
+          attachmentName:attachment?.name || "",
+          attachmentMime:attachment?.type || ""
+        })
+      });
+      const d=await res.json();
+      if(!res.ok) throw new Error(d.message || "Could not save payment.");
+      setShowAdd(false);
+      setAmount("");
+      setAttachment(null);
+      await load();
+    } catch (e) {
+      setNotice(e.message);
+    } finally {
+      setSaving(false);
+    }
   }
 
   return <main className="content receive-payment-page">
@@ -72,6 +104,41 @@ export default function ReceivePaymentPage() {
         </div>
         <label><span><CalendarDays size={13}/> Date</span><input type="date" value={date} onChange={e=>setDate(e.target.value)} required/></label>
         <label><span><IndianRupee size={13}/> Amount</span><div className="receive-amount"><b>₹</b><input type="number" min="0.01" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)} placeholder="0.00" required/></div></label>
+        <div className="receive-slip-field">
+          <label><span><FileImage size={13}/> Payment Slip / Screenshot <em>Optional</em></span></label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/jpg,image/webp"
+            hidden
+            onChange={e => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.size > 5 * 1024 * 1024) setNotice("Payment slip image must be 5MB or smaller.");
+                else setAttachment(file);
+              }
+              e.target.value = "";
+            }}
+          />
+          <div
+            className={"receive-slip-drop " + (attachment ? "has-file" : "")}
+            onDragOver={e=>e.preventDefault()}
+            onDrop={e=>{
+              e.preventDefault();
+              const file=e.dataTransfer?.files?.[0];
+              if (file) {
+                if (!file.type?.startsWith("image/")) return setNotice("Please upload an image file.");
+                if (file.size > 5 * 1024 * 1024) return setNotice("Payment slip image must be 5MB or smaller.");
+                setAttachment(file);
+              }
+            }}
+            onClick={()=>fileInputRef.current?.click()}
+          >
+            <Upload size={18}/>
+            <div><b>{attachment ? attachment.name : "Upload payment slip or screenshot"}</b><small>{attachment ? "Image selected • click to replace" : "Click to upload or drag & drop • PNG, JPG, WebP • Max 5MB"}</small></div>
+            {attachment && <button type="button" onClick={e=>{e.stopPropagation();setAttachment(null)}}><X size={14}/></button>}
+          </div>
+        </div>
       </div>
       {notice&&<div className="receive-notice">{notice}</div>}
       <div className="receive-actions"><button type="button" className="receive-cancel" onClick={()=>setShowAdd(false)}>Cancel</button><button className="receive-save" disabled={saving}>{saving?"Saving...":<><Save size={14}/> Save Payment</>}</button></div>
