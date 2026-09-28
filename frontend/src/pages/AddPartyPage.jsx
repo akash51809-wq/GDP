@@ -9,8 +9,6 @@ const initialForm = {
   email: "",
   address: "",
   city: "",
-  partyType: "Customer",
-  status: "ACTIVE",
   balance: "0"
 };
 
