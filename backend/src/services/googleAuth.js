@@ -20,7 +20,7 @@ export function getOAuth2Client() {
   return new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 }
 
-export function generateGoogleAuthUrl() {
+export function generateGoogleAuthUrl(state = "") {
   const oauth2Client = getOAuth2Client();
   if (!oauth2Client) {
     throw new Error("Google Client ID and Client Secret are not configured.");
@@ -29,7 +29,8 @@ export function generateGoogleAuthUrl() {
   return oauth2Client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
-    scope: SCOPES
+    scope: SCOPES,
+    ...(state ? { state } : {})
   });
 }
 
