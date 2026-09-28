@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Save, UserPlus, RotateCcw } from "lucide-react";
+import { ArrowLeft, Save, UserPlus, RotateCcw, ChevronDown } from "lucide-react";
 import "./AddPartyPage.css";
 import { API } from "../apiConfig";
 
@@ -15,6 +15,7 @@ const initialForm = {
 export default function AddPartyPage() {
   const [form, setForm] = useState(initialForm);
   const [saving, setSaving] = useState(false);
+  const [showContactAccount, setShowContactAccount] = useState(false);
   const [notice, setNotice] = useState({ type: "", text: "" });
 
   function update(field, value) {
@@ -46,7 +47,7 @@ export default function AddPartyPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Could not create party.");
 
-      setNotice({ type: "success", text: "Party created successfully." });
+      setNotice({ type: "success", text: "Customer saved successfully." });
       setForm(initialForm);
 
       setTimeout(() => goBack(), 700);
@@ -61,78 +62,108 @@ export default function AddPartyPage() {
     <main className="content add-party-page">
       <div className="add-party-hero">
         <div>
-          <div className="eyebrow">PARTY / CUSTOMER</div>
-          <h1><UserPlus size={25} /> Add Party</h1>
-          <p>Create a customer account without affecting any other module.</p>
+          <div className="eyebrow">CUSTOMER MANAGEMENT</div>
+          <h1><UserPlus size={25} /> Create Customer</h1>
         </div>
         <button className="compact-back" onClick={goBack}>
-          <ArrowLeft size={15} /> Back to Party Center
+          <ArrowLeft size={15} /> Back to Customer Management
         </button>
       </div>
 
       <form className="add-party-card" onSubmit={submit}>
         <div className="form-section-title">
           <span>01</span>
-          <div><b>Basic Information</b><small>Customer identity and account type</small></div>
+          <div>
+            <b>Customer Information</b>
+            <small>Only customer name is required</small>
+          </div>
         </div>
 
         <div className="form-grid">
           <label className="field full">
             <span>Customer Name *</span>
-            <input required minLength={2} maxLength={120} value={form.customerName} onChange={e => update("customerName", e.target.value)} placeholder="Enter customer name" />
-          </label>
-
-          <label className="field">
-            <span>WhatsApp</span>
-            <input maxLength={20} value={form.whatsapp} onChange={e => update("whatsapp", e.target.value)} placeholder="+91 98765 43210" />
-          </label>
-
-          <label className="field">
-            <span>Email</span>
-            <input type="email" maxLength={160} value={form.email} onChange={e => update("email", e.target.value)} placeholder="customer@email.com" />
-          </label>
-
-          <label className="field">
-            <span>Party Type</span>
-            <select value={form.partyType} onChange={e => update("partyType", e.target.value)}>
-              <option>Customer</option>
-              <option>Corporate</option>
-              <option>Agent</option>
-              <option>Supplier</option>
-              <option>Other</option>
-            </select>
-          </label>
-
-          <label className="field">
-            <span>Status</span>
-            <select value={form.status} onChange={e => update("status", e.target.value)}>
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
-            </select>
+            <input
+              required
+              minLength={2}
+              maxLength={120}
+              value={form.customerName}
+              onChange={e => update("customerName", e.target.value)}
+              placeholder="Enter customer name"
+            />
           </label>
         </div>
 
-        <div className="form-section-title">
-          <span>02</span>
-          <div><b>Contact & Account</b><small>Address and opening balance</small></div>
-        </div>
+        <button
+          type="button"
+          className={"optional-section-toggle " + (showContactAccount ? "open" : "")}
+          onClick={() => setShowContactAccount(v => !v)}
+          aria-expanded={showContactAccount}
+        >
+          <span>
+            <b>Contact & Account</b>
+            <small>Optional — WhatsApp, email, address, city and opening balance</small>
+          </span>
+          <ChevronDown size={18} />
+        </button>
 
-        <div className="form-grid">
-          <label className="field">
-            <span>City</span>
-            <input maxLength={80} value={form.city} onChange={e => update("city", e.target.value)} placeholder="City" />
-          </label>
+        {showContactAccount && (
+          <div className="optional-account-fields">
+            <div className="form-grid">
+              <label className="field">
+                <span>WhatsApp</span>
+                <input
+                  maxLength={20}
+                  value={form.whatsapp}
+                  onChange={e => update("whatsapp", e.target.value)}
+                  placeholder="+91 98765 43210"
+                />
+              </label>
 
-          <label className="field">
-            <span>Opening Balance</span>
-            <input type="number" step="0.01" value={form.balance} onChange={e => update("balance", e.target.value)} placeholder="0.00" />
-          </label>
+              <label className="field">
+                <span>Email</span>
+                <input
+                  type="email"
+                  maxLength={160}
+                  value={form.email}
+                  onChange={e => update("email", e.target.value)}
+                  placeholder="customer@email.com"
+                />
+              </label>
 
-          <label className="field full">
-            <span>Address</span>
-            <textarea maxLength={300} rows={3} value={form.address} onChange={e => update("address", e.target.value)} placeholder="Full address" />
-          </label>
-        </div>
+              <label className="field">
+                <span>City</span>
+                <input
+                  maxLength={80}
+                  value={form.city}
+                  onChange={e => update("city", e.target.value)}
+                  placeholder="City"
+                />
+              </label>
+
+              <label className="field">
+                <span>Opening Balance</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={form.balance}
+                  onChange={e => update("balance", e.target.value)}
+                  placeholder="0.00"
+                />
+              </label>
+
+              <label className="field full">
+                <span>Address</span>
+                <textarea
+                  maxLength={300}
+                  rows={3}
+                  value={form.address}
+                  onChange={e => update("address", e.target.value)}
+                  placeholder="Full address"
+                />
+              </label>
+            </div>
+          </div>
+        )}
 
         {notice.text && <div className={"add-party-notice " + notice.type}>{notice.text}</div>}
 
@@ -141,7 +172,7 @@ export default function AddPartyPage() {
             <RotateCcw size={15} /> Reset
           </button>
           <button type="submit" className="save-party-btn" disabled={saving}>
-            <Save size={16} /> {saving ? "Saving..." : "Save Party"}
+            <Save size={16} /> {saving ? "Saving..." : "Save Customer"}
           </button>
         </div>
       </form>
