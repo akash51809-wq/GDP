@@ -31,7 +31,7 @@ const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").trim(
 const isProduction = process.env.NODE_ENV === "production";
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
 
-// In-memory fallback if MongoDB connection is pending or offline
+// In-memory fallback if PostgreSQL connection is unavailable
 const memory = {
   pnrRecords: [],
   tickets: [],
