@@ -14,6 +14,7 @@ import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import BalancePaymentPage from "./pages/BalancePaymentPage";
 import PartyLedgerPage from "./pages/PartyLedgerPage";
+import TicketsReportPage from "./pages/TicketsReportPage";
 
 import "./styles.css";
 import { API } from "./apiConfig";
@@ -39,6 +40,7 @@ const ROUTES = {
   "/receive-payment": "receive-payment",
   "/reports": "reports",
   "/reports/ledger": "party-ledger",
+  "/reports/tickets": "tickets-report",
   "/reports/balance-payment": "balance-payment",
   "/reports/party-ledger": "party-ledger",
   "/report": "reports",
@@ -107,6 +109,7 @@ function AppShell({ user, onLogout }) {
       case "reports": return <ReportsPage />;
       case "balance-payment": return <BalancePaymentPage />;
       case "party-ledger": return <PartyLedgerPage />;
+      case "tickets-report": return <TicketsReportPage />;
       case "settings": return <SettingsPage />;
       case "dashboard":
       default: return <DashboardPage user={user} summary={summary} onNavigate={go} />;
@@ -130,13 +133,14 @@ function AppShell({ user, onLogout }) {
             <div key={key} className={key === "reports" ? "nav-group" : ""}>
               <button
                 onClick={() => key === "reports" ? (setReportsOpen(v => !v), go(path)) : go(path)}
-                className={"nav-item " + (page === key || (key === "reports" && page === "party-ledger") ? "active" : "")}
+                className={"nav-item " + (page === key || (key === "reports" && (page === "party-ledger" || page === "tickets-report")) ? "active" : "")}
               >
                 <Icon size={19} />{open && <><span>{label}</span>{key === "reports" && <span className="nav-chevron">{reportsOpen ? "⌃" : "⌄"}</span>}</>}
               </button>
               {open && key === "reports" && reportsOpen && (
                 <div className="nav-submenu">
                   <button className={"nav-subitem " + (page === "party-ledger" ? "active" : "")} onClick={() => go("/reports/ledger")}>Ledger</button>
+                  <button className={"nav-subitem " + (page === "tickets-report" ? "active" : "")} onClick={() => go("/reports/tickets")}>Tickets</button>
                 </div>
               )}
             </div>
