@@ -119,6 +119,7 @@ function AppShell({ user, onLogout }) {
   const currentTitle = page === "dashboard" ? "Overview"
     : page === "party-add" ? "Add Party / Customer"
     : page === "balance-payment" ? "Balance Payment"
+    : page === "tickets-report" ? "Booked Tickets"
     : menu.find(item => item[2] === page)?.[1] || "Overview";
 
   return (
