@@ -177,7 +177,10 @@ const paymentSchema = z.object({
   partyId: z.string().min(1),
   partyName: z.string().min(2).max(120),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  amount: z.coerce.number().finite().positive()
+  amount: z.coerce.number().finite().positive(),
+  attachmentData: z.string().max(7 * 1024 * 1024).optional().default(""),
+  attachmentName: z.string().max(180).optional().default(""),
+  attachmentMime: z.enum(["image/jpeg", "image/jpg", "image/png", "image/webp"]).optional().default("")
 });
 const ticketSchema = z.object({
   partyId: z.string().min(1),
@@ -633,7 +636,11 @@ app.post("/api/payments/received", requireAuth, async (req, res) => {
     partyName: party.customerName,
     date: parsed.data.date,
     amount: parsed.data.amount,
-    createdAt: now
+    attachmentData: parsed.data.attachmentData || null,
+    attachmentName: parsed.data.attachmentName || "",
+    attachmentMime: parsed.data.attachmentMime || "",
+    createdAt: now,
+    updatedAt: now
   };
 
   if (isDbConnected()) {
