@@ -180,14 +180,6 @@ export default function TicketBookingPage() {
 
   return (
     <main className="content ticket-booking-page">
-      <div className="ticket-booking-hero">
-        <div>
-          <div className="eyebrow">BOOKING CENTER</div>
-          <h1><Ticket size={23} /> New Ticket Booking <span>✦</span></h1>
-          <p>Choose a party, enter booking details and save the ticket in a few steps.</p>
-        </div>
-        <button className="ticket-back" onClick={() => go("/dashboard")}><ArrowLeft size={14} /> Back</button>
-      </div>
       <form className="ticket-booking-card" onSubmit={saveBooking}>
         <section className="ticket-section">
           <div className="ticket-section-title"><span>01</span><div><b>Choose Party</b><small>Select an existing party or add a new one</small></div></div>
