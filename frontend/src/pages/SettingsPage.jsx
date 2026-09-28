@@ -40,7 +40,7 @@ const initial = {
 };
 
 function authHeaders() {
-  const token = localStorage.getItem("raildesk_auth_token");
+  const token = sessionStorage.getItem("raildesk_auth_token");
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: "Bearer " + token } : {})
@@ -493,7 +493,7 @@ export default function SettingsPage() {
                   required
                 />
               </Field>
-              <Field label="New Password (min 8 chars)">
+              <Field label="New Password (min 12 chars)">
                 <input
                   type="password"
                   value={passwordForm.newPassword}
