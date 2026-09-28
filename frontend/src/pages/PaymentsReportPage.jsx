@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, FileDown, Image, RefreshCw, Search, X } from "lucide-react";
+import { Download, FileDown, Image, Search, X } from "lucide-react";
 import "./PaymentsReportPage.css";
 import { API } from "../apiConfig";
 
@@ -20,9 +20,10 @@ export default function PaymentsReportPage() {
   const [attachment, setAttachment] = useState(null);
 
   useEffect(() => {
+    load();
     fetch(API + "/api/parties", { credentials: "include", headers: authHeaders() })
       .then(r => r.json()).then(d => setParties(d.parties || [])).catch(() => {});
-  }, []);
+  }, [partyId, date]);
 
   async function load() {
     setLoading(true);
@@ -81,7 +82,7 @@ export default function PaymentsReportPage() {
       <section className="payments-report-filter">
         <div className="payment-filter-party"><Search size={15}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search party..." /><select value={partyId} onChange={e=>setPartyId(e.target.value)}><option value="">All Parties</option>{filtered.map(p=><option key={p.id} value={p.id}>{p.customerName}</option>)}</select></div>
         <label>DATE<input type="date" value={date} onChange={e=>setDate(e.target.value)} /></label>
-        <button className="payments-load-btn" onClick={load} disabled={loading}><RefreshCw size={14}/>{loading ? "Loading..." : "Show Payments"}</button>
+        
       </section>
 
       <section className="payments-report-card">
@@ -90,7 +91,7 @@ export default function PaymentsReportPage() {
           <table className="payments-report-table">
             <thead><tr><th>#</th><th>Date</th><th>Party</th><th>Payment ID</th><th>Amount</th><th>Attachment</th><th>Actions</th></tr></thead>
             <tbody>
-              {!payments.length ? <tr><td colSpan="7" className="payments-empty">Click Show Payments to load received payments.</td></tr> :
+              {!payments.length ? <tr><td colSpan="7" className="payments-empty">No received payments found for the selected filters.</td></tr> :
                 payments.map((p,i)=><tr key={p.id}>
                   <td>{i+1}</td><td>{p.date || "—"}</td><td><b>{p.partyName || "—"}</b></td><td><b>{p.id}</b></td><td className="payment-report-amount">{money(p.amount)}</td>
                   <td>{p.attachmentData ? <div className="payment-attachment-actions"><button title="Show attachment" onClick={()=>showAttachment(p)}><Image size={14}/> Show</button><button title="Download attachment" onClick={()=>downloadAttachment(p)}><FileDown size={14}/> Download</button></div> : "—"}</td>
