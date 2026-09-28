@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, RefreshCw, Search, Ticket as TicketIcon, X } from "lucide-react";
+import { Download, Search, Ticket as TicketIcon, X } from "lucide-react";
 import "./TicketsReportPage.css";
 import { API } from "../apiConfig";
 
@@ -20,9 +20,10 @@ export default function TicketsReportPage() {
   const [ticketView, setTicketView] = useState(null);
 
   useEffect(() => {
+    load();
     fetch(API + "/api/parties", { credentials: "include", headers: authHeaders() })
       .then(r => r.json()).then(d => setParties(d.parties || [])).catch(() => {});
-  }, []);
+  }, [partyId, date]);
 
   async function load() {
     setLoading(true);
@@ -84,7 +85,7 @@ export default function TicketsReportPage() {
           </select>
         </div>
         <label>DATE<input type="date" value={date} onChange={e => setDate(e.target.value)} /></label>
-        <button className="tickets-load-btn" onClick={load} disabled={loading}><RefreshCw size={14}/>{loading ? "Loading..." : "Show Tickets"}</button>
+        
       </section>
 
       <section className="tickets-report-card">
@@ -93,7 +94,7 @@ export default function TicketsReportPage() {
           <table className="tickets-report-table">
             <thead><tr><th>#</th><th>Date</th><th>Party</th><th>PNR</th><th>Ticket Details</th><th>Amount</th><th>Actions</th></tr></thead>
             <tbody>
-              {!tickets.length ? <tr><td colSpan="7" className="tickets-empty">Click Show Tickets to load booked tickets.</td></tr> :
+              {!tickets.length ? <tr><td colSpan="7" className="tickets-empty">No booked tickets found for the selected filters.</td></tr> :
                 tickets.map((t, i) => {
                   const q = t.qrParsedData || {};
                   return <tr key={t.id}>
