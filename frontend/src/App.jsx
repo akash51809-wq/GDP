@@ -65,7 +65,7 @@ function navigate(path, replace = false) {
 }
 
 function authHeaders() {
-  const token = localStorage.getItem("raildesk_auth_token");
+  const token = sessionStorage.getItem("raildesk_auth_token");
   return token ? { Authorization: "Bearer " + token } : {};
 }
 
@@ -194,7 +194,7 @@ export default function App() {
       credentials: "include",
       headers: authHeaders()
     }).catch(() => {});
-    localStorage.removeItem("raildesk_auth_token");
+    sessionStorage.removeItem("raildesk_auth_token");
     setUser(null);
     navigate("/login", true);
   }
