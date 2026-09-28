@@ -16,6 +16,7 @@ import BalancePaymentPage from "./pages/BalancePaymentPage";
 import PartyLedgerPage from "./pages/PartyLedgerPage";
 import TicketsReportPage from "./pages/TicketsReportPage";
 import PaymentsReportPage from "./pages/PaymentsReportPage";
+import OutstandingReportPage from "./pages/OutstandingReportPage";
 
 import "./styles.css";
 import { API } from "./apiConfig";
@@ -43,6 +44,7 @@ const ROUTES = {
   "/reports/ledger": "party-ledger",
   "/reports/tickets": "tickets-report",
   "/reports/payments": "payments-report",
+  "/reports/outstanding": "outstanding-report",
   "/reports/balance-payment": "balance-payment",
   "/reports/party-ledger": "party-ledger",
   "/report": "reports",
@@ -113,6 +115,7 @@ function AppShell({ user, onLogout }) {
       case "party-ledger": return <PartyLedgerPage />;
       case "tickets-report": return <TicketsReportPage />;
       case "payments-report": return <PaymentsReportPage />;
+      case "outstanding-report": return <OutstandingReportPage />;
       case "settings": return <SettingsPage />;
       case "dashboard":
       default: return <DashboardPage user={user} summary={summary} onNavigate={go} />;
@@ -124,6 +127,7 @@ function AppShell({ user, onLogout }) {
     : page === "balance-payment" ? "Balance Payment"
     : page === "tickets-report" ? "Booked Tickets"
     : page === "payments-report" ? "Received Payments"
+    : page === "outstanding-report" ? "Outstanding"
     : menu.find(item => item[2] === page)?.[1] || "Overview";
 
   return (
@@ -138,7 +142,7 @@ function AppShell({ user, onLogout }) {
             <div key={key} className={key === "reports" ? "nav-group" : ""}>
               <button
                 onClick={() => key === "reports" ? (setReportsOpen(v => !v), go(path)) : go(path)}
-                className={"nav-item " + (page === key || (key === "reports" && (page === "party-ledger" || page === "tickets-report" || page === "payments-report")) ? "active" : "")}
+                className={"nav-item " + (page === key || (key === "reports" && (page === "party-ledger" || page === "tickets-report" || page === "payments-report" || page === "outstanding-report")) ? "active" : "")}
               >
                 <Icon size={19} />{open && <><span>{label}</span>{key === "reports" && <span className="nav-chevron">{reportsOpen ? "⌃" : "⌄"}</span>}</>}
               </button>
@@ -147,6 +151,7 @@ function AppShell({ user, onLogout }) {
                   <button className={"nav-subitem " + (page === "party-ledger" ? "active" : "")} onClick={() => go("/reports/ledger")}>Ledger</button>
                   <button className={"nav-subitem " + (page === "tickets-report" ? "active" : "")} onClick={() => go("/reports/tickets")}>Tickets</button>
                   <button className={"nav-subitem " + (page === "payments-report" ? "active" : "")} onClick={() => go("/reports/payments")}>Payment</button>
+                  <button className={"nav-subitem " + (page === "outstanding-report" ? "active" : "")} onClick={() => go("/reports/outstanding")}>Outstanding</button>
                 </div>
               )}
             </div>
