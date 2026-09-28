@@ -639,6 +639,28 @@ app.get("/api/reports/party-ledger/:partyId", requireAuth, async (req, res) => {
   });
 });
 
+app.get("/api/reports/payments", requireAuth, async (req, res) => {
+  const partyId = String(req.query.partyId || "").trim();
+  const date = String(req.query.date || "").trim();
+  const filter = {};
+  if (partyId) filter.partyId = partyId;
+  if (date) filter.date = date;
+
+  if (isDbConnected()) {
+    try {
+      const payments = await Payment.find(filter).sort({ date: -1, createdAt: -1 }).lean();
+      return res.json({ payments });
+    } catch (error) {
+      console.error("Fetch payment report DB error:", error);
+    }
+  }
+
+  let payments = memory.payments || [];
+  if (partyId) payments = payments.filter(p => p.partyId === partyId);
+  if (date) payments = payments.filter(p => p.date === date);
+  res.json({ payments });
+});
+
 app.get("/api/payments/received", requireAuth, async (_req, res) => {
   if (isDbConnected()) {
     try {
