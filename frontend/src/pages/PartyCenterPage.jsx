@@ -101,8 +101,6 @@ export default function PartyCenterPage() {
       <div className="page-hero party-hero">
         <div>
           <div className="eyebrow">CUSTOMER MANAGEMENT</div>
-          <h1>Party Center <span>✦</span></h1>
-          <p>Manage customer accounts, contact details and outstanding balances from one compact workspace.</p>
         </div>
         <button className="primary-small party-add-btn" onClick={() => { window.history.pushState({}, "", "/party/add"); window.dispatchEvent(new PopStateEvent("popstate")); }}><UserPlus size={16} /> Create Party</button>
       </div>
