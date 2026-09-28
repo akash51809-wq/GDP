@@ -38,6 +38,7 @@ const ROUTES = {
   "/add-user": "party-add",
   "/receive-payment": "receive-payment",
   "/reports": "reports",
+  "/reports/ledger": "party-ledger",
   "/reports/balance-payment": "balance-payment",
   "/reports/party-ledger": "party-ledger",
   "/report": "reports",
@@ -65,6 +66,7 @@ function authHeaders() {
 
 function AppShell({ user, onLogout }) {
   const [open, setOpen] = useState(true);
+  const [reportsOpen, setReportsOpen] = useState(false);
   const [page, setPage] = useState(() => getRoute() || "dashboard");
   const [summary, setSummary] = useState({ partyCount: 0, ticketCount: 0, outstanding: "0.00", todayBookings: 0 });
 
@@ -125,9 +127,19 @@ function AppShell({ user, onLogout }) {
         </div>
         <nav>
           {menu.map(([Icon, label, key, path]) => (
-            <button key={key} onClick={() => go(path)} className={"nav-item " + (page === key ? "active" : "")}>
-              <Icon size={19} />{open && <span>{label}</span>}
-            </button>
+            <div key={key} className={key === "reports" ? "nav-group" : ""}>
+              <button
+                onClick={() => key === "reports" ? (setReportsOpen(v => !v), go(path)) : go(path)}
+                className={"nav-item " + (page === key || (key === "reports" && page === "party-ledger") ? "active" : "")}
+              >
+                <Icon size={19} />{open && <><span>{label}</span>{key === "reports" && <span className="nav-chevron">{reportsOpen ? "⌃" : "⌄"}</span>}</>}
+              </button>
+              {open && key === "reports" && reportsOpen && (
+                <div className="nav-submenu">
+                  <button className={"nav-subitem " + (page === "party-ledger" ? "active" : "")} onClick={() => go("/reports/ledger")}>Ledger</button>
+                </div>
+              )}
+            </div>
           ))}
         </nav>
         <div className="sidebar-bottom">
