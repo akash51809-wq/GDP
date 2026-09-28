@@ -1,5 +1,5 @@
 import { google } from "googleapis";
-import { Settings } from "../models/Settings.js";
+import { Settings } from "../models/index.js";
 import { isDbConnected } from "../db.js";
 import { encrypt, decrypt } from "../utils/crypto.js";
 
