@@ -38,9 +38,6 @@ if (isProduction && (!SESSION_SECRET || SESSION_SECRET.length < 32)) {
 if (isProduction && (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length < 32)) {
   throw new Error("ENCRYPTION_KEY must be set to a strong value (32+ characters) in production.");
 }
-if (isProduction && (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length < 32)) {
-  throw new Error("ENCRYPTION_KEY must be set to a strong value (32+ characters) in production.");
-}
 
 // In-memory fallback if PostgreSQL connection is unavailable
 const memory = {
@@ -51,8 +48,6 @@ const memory = {
   qrScans: []
 };
 
-const authTokens = new Map();
-const AUTH_TOKEN_TTL_MS = 1000 * 60 * 60 * 8;
 
 const pgPool = process.env.DATABASE_URL
   ? new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 10, idleTimeoutMillis: 30000 })
@@ -99,8 +94,17 @@ app.use(cors({
 app.use(express.json({ limit: "6mb" }));
 
 // Secure session configuration
+const sessionStore = pgPool
+  ? new PgSessionStore({
+      pool: pgPool,
+      tableName: "user_sessions",
+      createTableIfMissing: true
+    })
+  : undefined;
+
 app.use(session({
-  name: "__gdp_sid",
+  name: isProduction ? "__Host-gdp_sid" : "__gdp_sid",
+  ...(sessionStore ? { store: sessionStore } : {}),
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
@@ -196,18 +200,6 @@ const ticketSchema = z.object({
 
 function requireAuth(req, res, next) {
   if (!isDbConnected()) return res.status(503).json({ message: "Database is temporarily unavailable. Please try again." });
-  const bearer = req.headers.authorization?.startsWith("Bearer ")
-    ? req.headers.authorization.slice(7).trim()
-    : "";
-  if (bearer) {
-    const sessionUser = authTokens.get(bearer);
-    if (sessionUser && Date.now() - sessionUser.createdAt <= AUTH_TOKEN_TTL_MS) {
-      req.session.userId = sessionUser.userId;
-      req.session.userRole = sessionUser.role;
-    } else if (sessionUser) {
-      authTokens.delete(bearer);
-    }
-  }
   if (!req.session.userId) return res.status(401).json({ message: "Authentication required." });
   next();
 }
@@ -254,15 +246,10 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
     return res.status(401).json({ message: "Email or password is incorrect." });
   }
 
-  const token = crypto.randomBytes(32).toString("hex");
-  authTokens.set(token, { userId: authenticatedUser.id, role: authenticatedUser.role, createdAt: Date.now() });
   req.session.userId = authenticatedUser.id;
   req.session.userRole = authenticatedUser.role;
 
-  const sendLogin = () => res.json({
-    user: authenticatedUser,
-    token
-  });
+  const sendLogin = () => res.json({ user: authenticatedUser });
   if (typeof req.session.save === "function") {
     req.session.save((err) => {
       if (err) console.error("Session save error:", err);
@@ -274,19 +261,11 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
 });
 
 app.post("/api/auth/logout", (req, res) => {
-  const bearer = req.headers.authorization?.startsWith("Bearer ")
-    ? req.headers.authorization.slice(7).trim()
-    : "";
-  if (bearer) authTokens.delete(bearer);
   req.session.destroy(() => res.json({ ok: true }));
 });
 
 app.get("/api/auth/me", async (req, res) => {
-  const bearer = req.headers.authorization?.startsWith("Bearer ")
-    ? req.headers.authorization.slice(7).trim()
-    : "";
-  const tokenData = bearer ? authTokens.get(bearer) : null;
-  const userId = tokenData?.userId || req.session.userId;
+  const userId = req.session.userId;
 
   if (!userId) return res.status(401).json({ message: "Not authenticated." });
 
