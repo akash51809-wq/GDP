@@ -22,7 +22,7 @@ export default function LoginPage({ onLogin }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
-      if (data.token) sessionStorage.setItem("raildesk_auth_token", data.token);
+      sessionStorage.removeItem("raildesk_auth_token");
       onLogin(data.user);
     } catch (err) {
       setError(err.message);
