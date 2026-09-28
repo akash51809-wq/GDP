@@ -5,6 +5,8 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import session from "express-session";
+import pg from "pg";
+import connectPgSimple from "connect-pg-simple";
 import bcrypt from "bcryptjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,7 +31,10 @@ const app = express();
 const PORT = Number(process.env.PORT || 3001);
 const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").trim().split(/\s+/)[0];
 const isProduction = process.env.NODE_ENV === "production";
-const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString("hex");
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (isProduction && (!SESSION_SECRET || SESSION_SECRET.length < 32)) {
+  throw new Error("SESSION_SECRET must be set to a strong value (32+ characters) in production.");
+}
 
 // In-memory fallback if PostgreSQL connection is unavailable
 const memory = {
@@ -41,6 +46,12 @@ const memory = {
 };
 
 const authTokens = new Map();
+const AUTH_TOKEN_TTL_MS = 1000 * 60 * 60 * 8;
+
+const pgPool = process.env.DATABASE_URL
+  ? new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 10, idleTimeoutMillis: 30000 })
+  : null;
+const PgSessionStore = connectPgSimple(session);
 
 if (process.env.RAILKIT_API_KEY) configure(process.env.RAILKIT_API_KEY);
 
@@ -67,12 +78,7 @@ const allowedOrigins = [
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith(".onrender.com") ||
-      origin.includes("localhost") ||
-      origin.includes("127.0.0.1")
-    ) {
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     return callback(new Error("CORS policy violation: origin not allowed"));
@@ -113,10 +119,7 @@ function csrfProtection(req, res, next) {
 
   if (origin) {
     const isAllowed =
-      allowedOrigins.includes(origin) ||
-      origin.endsWith(".onrender.com") ||
-      origin.includes("localhost") ||
-      origin.includes("127.0.0.1");
+      allowedOrigins.includes(origin);
     if (!isAllowed) {
       return res.status(403).json({ message: "CSRF check failed: Origin not permitted." });
     }
@@ -124,10 +127,7 @@ function csrfProtection(req, res, next) {
     try {
       const refUrl = new URL(referer);
       const isAllowed =
-        allowedOrigins.includes(refUrl.origin) ||
-        refUrl.origin.endsWith(".onrender.com") ||
-        refUrl.origin.includes("localhost") ||
-        refUrl.origin.includes("127.0.0.1");
+        allowedOrigins.includes(refUrl.origin);
       if (!isAllowed) {
         return res.status(403).json({ message: "CSRF check failed: Referer not permitted." });
       }
@@ -180,13 +180,18 @@ const ticketSchema = z.object({
 });
 
 function requireAuth(req, res, next) {
+  if (!isDbConnected()) return res.status(503).json({ message: "Database is temporarily unavailable. Please try again." });
   const bearer = req.headers.authorization?.startsWith("Bearer ")
     ? req.headers.authorization.slice(7).trim()
     : "";
-  if (bearer && authTokens.has(bearer)) {
+  if (bearer) {
     const sessionUser = authTokens.get(bearer);
-    req.session.userId = sessionUser.userId;
-    req.session.userRole = sessionUser.role;
+    if (sessionUser && Date.now() - sessionUser.createdAt <= AUTH_TOKEN_TTL_MS) {
+      req.session.userId = sessionUser.userId;
+      req.session.userRole = sessionUser.role;
+    } else if (sessionUser) {
+      authTokens.delete(bearer);
+    }
   }
   if (!req.session.userId) return res.status(401).json({ message: "Authentication required." });
   next();
@@ -202,6 +207,7 @@ app.get("/api/health", (_req, res) => res.json({
 app.get("/api/ping", (_req, res) => res.status(200).send("pong"));
 
 app.post("/api/auth/login", loginLimiter, async (req, res) => {
+  if (!isDbConnected()) return res.status(503).json({ message: "Database is temporarily unavailable. Please try again." });
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Invalid login details." });
   const email = parsed.data.email.trim().toLowerCase();
@@ -226,20 +232,6 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
       }
     } catch (dbErr) {
       console.error("Auth DB error:", dbErr);
-    }
-  }
-
-  // 2. Fallback to environment variables
-  if (!authenticatedUser) {
-    const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
-    const adminPassword = process.env.ADMIN_PASSWORD || "AdminPassword123!";
-    if (email === adminEmail && inputPassword === adminPassword) {
-      authenticatedUser = {
-        id: "demo-admin",
-        name: "Administrator",
-        email: adminEmail,
-        role: "ADMIN"
-      };
     }
   }
 
@@ -302,8 +294,7 @@ app.get("/api/auth/me", async (req, res) => {
     }
   }
 
-  const adminEmail = (process.env.ADMIN_EMAIL || "admin@example.com").trim().toLowerCase();
-  res.json({ user: { id: userId, name: "Administrator", email: adminEmail, role: "ADMIN", status: "ACTIVE" } });
+  return res.status(404).json({ message: "User account not found." });
 });
 
 app.get("/api/dashboard/summary", requireAuth, async (_req, res) => {
