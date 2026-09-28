@@ -27,8 +27,6 @@ const menu = [
   [WalletCards, "Ledger / Payments", "ledger", "/ledger"],
   [CreditCard, "Receive Payment", "receive-payment", "/receive-payment"],
   [BarChart3, "Reports", "reports", "/reports"],
-  [WalletCards, "Balance Payment", "balance-payment", "/reports/balance-payment"],
-  [WalletCards, "Party Ledger", "party-ledger", "/reports/party-ledger"],
   [QrCode, "QR Scanner", "qr-scanner", "/qr-scanner"],
   [Settings, "Settings", "settings", "/settings"]
 ];
