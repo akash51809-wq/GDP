@@ -707,6 +707,28 @@ app.get("/api/tickets", requireAuth, async (_req, res) => {
   res.json({ tickets: memory.tickets });
 });
 
+app.get("/api/reports/tickets", requireAuth, async (req, res) => {
+  const partyId = String(req.query.partyId || "").trim();
+  const date = String(req.query.date || "").trim();
+  const filter = {};
+  if (partyId) filter.partyId = partyId;
+  if (date) filter.bookingDate = date;
+
+  if (isDbConnected()) {
+    try {
+      const tickets = await Ticket.find(filter).sort({ bookingDate: -1, createdAt: -1 }).lean();
+      return res.json({ tickets });
+    } catch (error) {
+      console.error("Fetch ticket report DB error:", error);
+    }
+  }
+
+  let tickets = memory.tickets || [];
+  if (partyId) tickets = tickets.filter(t => t.partyId === partyId);
+  if (date) tickets = tickets.filter(t => t.bookingDate === date);
+  res.json({ tickets });
+});
+
 app.post("/api/tickets", requireAuth, async (req, res) => {
   const parsed = ticketSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ message: "Please provide valid booking details." });
