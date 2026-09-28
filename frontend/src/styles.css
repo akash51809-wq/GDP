@@ -199,3 +199,21 @@ b, strong { font-weight: 800; }
 label { font-weight: 700 !important; }
 input, select, textarea { font-weight: 600 !important; }
 
+
+
+/* Compact, bold, readable UI system */
+:root{--ui-font-size:15px;--ui-font-weight:700}
+body{font-size:var(--ui-font-size);font-weight:var(--ui-font-weight)}
+button,input,select,textarea{font-family:inherit}
+button{font-weight:800}
+.nav-item,.topbar-title span,.primary-small,.ghost-btn,.icon-btn{font-weight:800}
+.content{padding:24px}
+.page-hero h1,.module-page-header h1,.welcome h1{font-weight:900}
+.page-hero p,.module-page-header p,.welcome p{font-weight:650}
+.metric-card,.glass-panel,.module-card,.party-panel,.settings-panel,.pnr-result{border-radius:16px}
+.metric-card{padding:16px}.glass-panel{padding:18px}
+input,select,textarea{font-size:15px !important;font-weight:700 !important}
+label{font-size:14px;font-weight:800 !important}
+th{font-size:13px !important;font-weight:900 !important}td{font-size:14px !important;font-weight:700 !important}
+small{font-weight:700}
+@media(max-width:650px){.content{padding:16px}.topbar{height:68px}.welcome h1,.page-hero h1,.module-page-header h1{font-size:28px}}
