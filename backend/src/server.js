@@ -195,7 +195,7 @@ function requireAuth(req, res, next) {
 app.get("/api/health", (_req, res) => res.json({
   ok: true,
   service: "railway-agent-backend",
-  mongoConnected: isDbConnected(),
+  databaseConnected: isDbConnected(),
   railkitConfigured: Boolean(process.env.RAILKIT_API_KEY)
 }));
 
@@ -209,7 +209,7 @@ app.post("/api/auth/login", loginLimiter, async (req, res) => {
 
   let authenticatedUser = null;
 
-  // 1. Authenticate against MongoDB Atlas User collection
+  // 1. Authenticate against PostgreSQL User table
   if (isDbConnected()) {
     try {
       const user = await User.findOne({ email }).lean();
@@ -752,7 +752,7 @@ app.post("/api/pnr/fetch", requireAuth, pnrLimiter, async (req, res) => {
           { $set: pnrData, $setOnInsert: { id: `pnr-${Date.now()}` } },
           { upsert: true, returnDocument: "after" }
         ).lean();
-        return res.json({ message: "PNR details were fetched and saved in MongoDB.", record: saved });
+        return res.json({ message: "PNR details were fetched and saved in PostgreSQL.", record: saved });
       } catch (dbErr) {
         console.error("Save PNR to DB error:", dbErr);
       }
@@ -1066,18 +1066,18 @@ async function ensureAdminUser() {
         role: "ADMIN",
         status: "ACTIVE"
       });
-      console.log(`👤 Seeded admin user (${adminEmail}) in MongoDB Atlas.`);
+      console.log(`👤 Seeded admin user (${adminEmail}) in PostgreSQL.`);
     }
   } catch (err) {
     console.error("Ensure admin user error:", err.message);
   }
 }
 
-// Connect to MongoDB and start server
+// Connect to PostgreSQL and start server
 connectDB().finally(async () => {
   await ensureAdminUser();
   app.listen(PORT, () => {
     console.log(`🚀 Railway Agent backend running on port ${PORT}`);
-    console.log(`📦 MongoDB Status: ${isDbConnected() ? "Connected to Atlas" : "Disconnected (check network access / IP whitelist)"}`);
+    console.log(`📦 PostgreSQL Status: ${isDbConnected() ? "Connected" : "Disconnected"}`);
   });
 });
