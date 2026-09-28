@@ -38,6 +38,9 @@ if (isProduction && (!SESSION_SECRET || SESSION_SECRET.length < 32)) {
 if (isProduction && (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length < 32)) {
   throw new Error("ENCRYPTION_KEY must be set to a strong value (32+ characters) in production.");
 }
+if (isProduction && (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY.length < 32)) {
+  throw new Error("ENCRYPTION_KEY must be set to a strong value (32+ characters) in production.");
+}
 
 // In-memory fallback if PostgreSQL connection is unavailable
 const memory = {
@@ -149,6 +152,7 @@ const generalApiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, stan
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 20, standardHeaders: "draft-8", legacyHeaders: false });
 const pnrLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30, standardHeaders: "draft-8", legacyHeaders: false });
 const uploadLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: "draft-8", legacyHeaders: false });
+const passwordLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 5, standardHeaders: "draft-8", legacyHeaders: false });
 const passwordLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 5, standardHeaders: "draft-8", legacyHeaders: false });
 
 app.use("/api/", generalApiLimiter);
