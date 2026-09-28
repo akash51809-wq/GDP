@@ -583,8 +583,43 @@ app.get("/api/reports/party-ledger/:partyId", requireAuth, async (req, res) => {
   }
 
   const entries = [
-    ...tickets.map(t => ({ id: t.id, date: t.bookingDate, description: "Ticket Booking", reference: t.pnr, dr: Number(t.amount || 0), cr: 0 })),
-    ...payments.map(p => ({ id: p.id, date: p.date, description: "Payment Received", reference: p.id, dr: 0, cr: Number(p.amount || 0) }))
+    ...tickets.map(t => ({
+      id: t.id,
+      date: t.bookingDate,
+      type: "TICKET",
+      description: "Ticket Booking",
+      reference: t.pnr,
+      dr: Number(t.amount || 0),
+      cr: 0,
+      ticket: {
+        id: t.id,
+        bookingDate: t.bookingDate,
+        pnr: t.pnr,
+        amount: Number(t.amount || 0),
+        status: t.status,
+        qrScanId: t.qrScanId,
+        qrType: t.qrType,
+        qrParsedData: t.qrParsedData,
+        qrRawText: t.qrRawText
+      }
+    })),
+    ...payments.map(p => ({
+      id: p.id,
+      date: p.date,
+      type: "PAYMENT",
+      description: "Payment Received",
+      reference: p.id,
+      dr: 0,
+      cr: Number(p.amount || 0),
+      payment: {
+        id: p.id,
+        date: p.date,
+        amount: Number(p.amount || 0),
+        attachmentData: p.attachmentData || "",
+        attachmentName: p.attachmentName || "",
+        attachmentMime: p.attachmentMime || ""
+      }
+    }))
   ].sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.id).localeCompare(String(b.id)));
 
   let balance = 0;
@@ -596,6 +631,8 @@ app.get("/api/reports/party-ledger/:partyId", requireAuth, async (req, res) => {
   res.json({
     party: { id: party.id, customerName: party.customerName, whatsapp: party.whatsapp, email: party.email, city: party.city },
     ledger,
+    tickets,
+    payments,
     totalDr: ledger.reduce((n, e) => n + e.dr, 0),
     totalCr: ledger.reduce((n, e) => n + e.cr, 0),
     balance
