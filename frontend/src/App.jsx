@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
-  LayoutDashboard, Ticket, Users, WalletCards, CreditCard, BarChart3, Settings,
-  LogOut, TrainFront, Plus, Search, Menu, X, QrCode
+  LayoutDashboard, Ticket, Users, CreditCard, BarChart3, Settings,
+  LogOut, TrainFront, Plus, Search, Menu, X
 } from "lucide-react";
 
 import LoginPage from "./pages/LoginPage";
@@ -9,13 +9,11 @@ import DashboardPage from "./pages/DashboardPage";
 import TicketBookingPage from "./pages/TicketBookingPage";
 import PartyCenterPage from "./pages/PartyCenterPage";
 import AddPartyPage from "./pages/AddPartyPage";
-import LedgerPaymentsPage from "./pages/LedgerPaymentsPage";
 import ReceivePaymentPage from "./pages/ReceivePaymentPage";
 import ReportsPage from "./pages/ReportsPage";
 import SettingsPage from "./pages/SettingsPage";
 import BalancePaymentPage from "./pages/BalancePaymentPage";
 import PartyLedgerPage from "./pages/PartyLedgerPage";
-import QrScannerPage from "./pages/QrScannerPage";
 
 import "./styles.css";
 import { API } from "./apiConfig";
@@ -24,10 +22,8 @@ const menu = [
   [LayoutDashboard, "Dashboard", "dashboard", "/dashboard"],
   [Ticket, "Ticket Booking", "tickets", "/ticket-booking"],
   [Users, "Party / Customer", "parties", "/party"],
-  [WalletCards, "Ledger / Payments", "ledger", "/ledger"],
   [CreditCard, "Receive Payment", "receive-payment", "/receive-payment"],
   [BarChart3, "Reports", "reports", "/reports"],
-  [QrCode, "QR Scanner", "qr-scanner", "/qr-scanner"],
   [Settings, "Settings", "settings", "/settings"]
 ];
 
@@ -40,13 +36,11 @@ const ROUTES = {
   "/user": "parties",
   "/user/add": "party-add",
   "/add-user": "party-add",
-  "/ledger": "ledger",
   "/receive-payment": "receive-payment",
   "/reports": "reports",
   "/reports/balance-payment": "balance-payment",
   "/reports/party-ledger": "party-ledger",
   "/report": "reports",
-  "/qr-scanner": "qr-scanner",
   "/settings": "settings"
 };
 
@@ -107,12 +101,10 @@ function AppShell({ user, onLogout }) {
       case "tickets": return <TicketBookingPage />;
       case "parties": return <PartyCenterPage />;
       case "party-add": return <AddPartyPage />;
-      case "ledger": return <LedgerPaymentsPage />;
       case "receive-payment": return <ReceivePaymentPage />;
       case "reports": return <ReportsPage />;
       case "balance-payment": return <BalancePaymentPage />;
       case "party-ledger": return <PartyLedgerPage />;
-      case "qr-scanner": return <QrScannerPage />;
       case "settings": return <SettingsPage />;
       case "dashboard":
       default: return <DashboardPage user={user} summary={summary} onNavigate={go} />;
