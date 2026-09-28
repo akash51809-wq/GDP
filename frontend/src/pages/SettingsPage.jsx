@@ -173,8 +173,8 @@ export default function SettingsPage() {
     if (!passwordForm.currentPassword) {
       return setPasswordMsg({ type: "error", text: "Please enter your current password." });
     }
-    if (passwordForm.newPassword.length < 8) {
-      return setPasswordMsg({ type: "error", text: "New password must be at least 8 characters long." });
+    if (passwordForm.newPassword.length < 12) {
+      return setPasswordMsg({ type: "error", text: "New password must be at least 12 characters long." });
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       return setPasswordMsg({ type: "error", text: "Passwords do not match." });
